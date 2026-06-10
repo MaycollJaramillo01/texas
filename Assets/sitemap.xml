@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://texashighrefinished.com/</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Photos/2026-02-01%20(15).jpg</image:loc>
+      <image:title>Finished kitchen cabinet refinishing in Marble Falls, TX</image:title>
+      <image:caption>Finished kitchen with refined cabinetry by Texas High Refinished.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Logo/Logo.png</image:loc>
+      <image:title>Texas High Refinished logo</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://texashighrefinished.com/services</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Photos/2026-02-01%20(14).jpg</image:loc>
+      <image:title>Kitchen remodeling in Marble Falls, TX</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/hero/1.jpeg</image:loc>
+      <image:title>Exterior painting and deck finish</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Photos/stock-drywall-installation-pexels.jpg</image:loc>
+      <image:title>Drywall repair and installation</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://texashighrefinished.com/gallery</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Photos/2026-02-01%20(15).jpg</image:loc>
+      <image:title>Finished kitchen remodel gallery</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Photos/2026-02-01%20(16).jpg</image:loc>
+      <image:title>High-end kitchen finish gallery</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/hero/2.jpeg</image:loc>
+      <image:title>Exterior trim finish gallery</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://texashighrefinished.com/about</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Photos/2026-02-01.png</image:loc>
+      <image:title>The Shop at Texas High Refinished</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://texashighrefinished.com/contact</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://texashighrefinished.com/Photos/2023-05-12.jpg</image:loc>
+      <image:title>Texas High Refinished exterior finish project</image:title>
+    </image:image>
+  </url>
+</urlset>

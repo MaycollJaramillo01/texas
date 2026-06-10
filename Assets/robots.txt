@@ -1,0 +1,27 @@
+# Texas High Refinished — robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Major search engines welcome
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Block aggressive scrapers
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+Sitemap: https://texashighrefinished.com/sitemap.xml
+Host: https://texashighrefinished.com

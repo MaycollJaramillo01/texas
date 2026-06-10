@@ -1,0 +1,27 @@
+{
+  "name": "Texas High Refinished",
+  "short_name": "T-H-R",
+  "description": "Kitchen remodeling, cabinet refinishing, interior & exterior painting, and drywall — premium in-shop finishes serving Marble Falls and the Texas Hill Country.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f0ea",
+  "theme_color": "#f4f0ea",
+  "lang": "en-US",
+  "categories": ["business", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/Logo/Logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Logo/Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
