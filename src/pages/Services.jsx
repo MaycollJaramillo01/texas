@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Check, Factory, Mail, Phone } from "lucide-react";
-import { assetUrl, buildPricingJsonLd, buildServiceListJsonLd, company } from "../data/company";
+import { assetUrl, buildServiceListJsonLd, company } from "../data/company";
 import { MotionSection, Reveal, fadeUp, stagger } from "../components/motion";
 import PageHeader from "../components/PageHeader";
-import PricingMatrix from "../components/PricingMatrix";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import SEO from "../components/SEO";
 
@@ -214,7 +213,7 @@ export default function ServicesPage() {
           { name: "Home", path: "/" },
           { name: "Services", path: "/services" },
         ]}
-        jsonLd={[buildServiceListJsonLd(), buildPricingJsonLd("/services")]}
+        jsonLd={buildServiceListJsonLd()}
       />
       <PageHeader
         crumb="Services"
@@ -225,7 +224,6 @@ export default function ServicesPage() {
         image={company.assets.pageHeroes.services}
       />
       <ServiceDetailGrid />
-      <PricingMatrix />
       <ShopFeature />
       <ProcessSection />
       <CapabilitiesStrip />
