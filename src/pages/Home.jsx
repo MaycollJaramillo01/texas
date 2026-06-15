@@ -14,10 +14,12 @@ import {
   assetUrl,
   buildBusinessJsonLd,
   buildFaqJsonLd,
+  buildPricingJsonLd,
   buildWebsiteJsonLd,
   company,
 } from "../data/company";
 import { MotionSection, Reveal, SplitHeading, ease, fadeUp, stagger } from "../components/motion";
+import PricingMatrix from "../components/PricingMatrix";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import SEO from "../components/SEO";
 
@@ -374,11 +376,13 @@ export default function HomePage() {
             description:
               "Premium kitchen finishes, refinishing, painting, and drywall serving Marble Falls and the Texas Hill Country.",
           },
+          buildPricingJsonLd("/"),
           buildFaqJsonLd(),
         ]}
       />
       <Hero />
       <PriorityServices />
+      <PricingMatrix context="home" />
       <ShopSection />
       <Pillars />
       <GalleryPreview />

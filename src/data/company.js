@@ -272,6 +272,91 @@ export const company = {
       copy: "Reinstall, clean, and walk the project with you to confirm everything is right.",
     },
   ],
+  pricingMatrix: {
+    version: "THR Pricing Matrix v1",
+    disclaimer:
+      "Base price ranges are planning estimates. Final pricing depends on surface condition, prep level, access, material system, color changes, repairs, and project scope.",
+    groups: [
+      {
+        key: "interior-painting",
+        title: "Interior Painting",
+        summary: "Interior painting prices for whole-home repaints, new construction, trim, doors, and drywall repair.",
+        items: [
+          { service: "Complete Interior Repaint", price: "$3.50 - $5.50 / sq ft" },
+          { service: "New Construction", price: "$4.50 - $6.00 / sq ft" },
+          { service: "Walls Only", price: "$1.50 - $2.50 / sq ft" },
+          { service: "Trim & Baseboards", price: "$1.50 - $3.00 / linear ft" },
+          { service: "Interior Doors", price: "$125 - $250 each" },
+          { service: "Crown Molding", price: "$2.50 - $6.00 / linear ft" },
+          { service: "Minor Drywall Repairs", price: "$150 - $500" },
+          { service: "Major Drywall Repairs", price: "$500 - $3,000+" },
+        ],
+      },
+      {
+        key: "exterior-painting",
+        title: "Exterior Painting",
+        summary: "Exterior painting and staining ranges for siding, stucco, brick, fascia, soffit, decks, and fences.",
+        items: [
+          { service: "Complete Exterior House", price: "$2.50 - $5.00 / sq ft" },
+          { service: "Hardie Siding", price: "$2.00 - $4.00 / sq ft" },
+          { service: "Stucco", price: "$2.50 - $5.50 / sq ft" },
+          { service: "Brick Paint", price: "$3.00 - $6.00 / sq ft" },
+          { service: "Fascia & Soffit", price: "$3.00 - $7.00 / linear ft" },
+          { service: "Deck Staining", price: "$4.00 - $10.00 / sq ft" },
+          { service: "Fence Staining", price: "$2.50 - $5.00 / linear ft" },
+        ],
+      },
+      {
+        key: "cabinet-refinishing",
+        title: "Cabinet Refinishing",
+        summary: "Cabinet refinishing prices for builder grade finishes, premium shop finishes, drawers, panels, and islands.",
+        items: [
+          { service: "Builder Grade Finish", price: "$125 - $175 per door" },
+          { service: "Premium Shop Finish", price: "$175 - $250 per door" },
+          { service: "Drawer Fronts", price: "$60 - $100 each" },
+          { service: "End Panels", price: "$150 - $400 each" },
+          { service: "Kitchen Island", price: "$500 - $2,500" },
+          { service: "Complete Kitchen Color Change", price: "$5,500 - $18,000+" },
+        ],
+      },
+      {
+        key: "drywall-installation",
+        title: "Drywall Installation",
+        summary: "Drywall installation and finishing prices for hanging sheetrock, tape and float, texture, and Level 4 or Level 5 finish.",
+        items: [
+          { service: "Hang Sheetrock", price: "$14 - $18 per sheet" },
+          { service: "Tape & Float", price: "$0.75 - $1.25 / sq ft" },
+          { service: "Texture", price: "$0.50 - $1.50 / sq ft" },
+          { service: "Level 4 Finish", price: "$1.25 - $2.00 / sq ft" },
+          { service: "Level 5 Finish", price: "$2.00 - $3.50 / sq ft" },
+          { service: "Drywall Repair", price: "$150 - $1,500+" },
+        ],
+      },
+      {
+        key: "tile-installation",
+        title: "Tile Installation",
+        summary: "Tile installation ranges for floors, shower walls, complete showers, and backsplashes.",
+        items: [
+          { service: "Flooring Tile", price: "$8 - $18 / sq ft" },
+          { service: "Shower Walls", price: "$20 - $45 / sq ft" },
+          { service: "Complete Shower", price: "$4,500 - $12,000+" },
+          { service: "Backsplash", price: "$15 - $35 / sq ft" },
+        ],
+      },
+    ],
+    minimumCharges: [
+      { service: "Service Call", price: "$250" },
+      { service: "Half Day Labor", price: "$450" },
+      { service: "Full Day Labor", price: "$750" },
+      { service: "Small Repair Project", price: "$500" },
+      { service: "Minimum Cabinet Project", price: "$2,500" },
+    ],
+    dailyTargets: [
+      { label: "Current Overhead Production Target", value: "$731 / day" },
+      { label: "Recommended Billing Target", value: "$1,200 - $1,800 / day" },
+      { label: "Target Gross Profit", value: "40% - 50%" },
+    ],
+  },
   assets: {
     logoDark: "Logo/Logo.png",
     logoLight: "Logo/Logo-white.png",
@@ -431,6 +516,10 @@ export const seoDefaults = {
     "exterior painting Highland Lakes",
     "drywall repair Marble Falls",
     "drywall installation Texas Hill Country",
+    "painting prices Marble Falls TX",
+    "cabinet refinishing cost Marble Falls",
+    "drywall installation pricing Texas Hill Country",
+    "tile installation Marble Falls TX",
     "painting studio Marble Falls",
     "refinishing shop TX",
     "Venetian plaster Texas",
@@ -586,6 +675,41 @@ export function buildServiceListJsonLd() {
           name: area,
         })),
       },
+    })),
+  };
+}
+
+export function buildPricingJsonLd(path = "/services") {
+  return {
+    "@context": "https://schema.org",
+    "@type": "OfferCatalog",
+    "@id": `${SITE_URL}${path}#pricing`,
+    name: "Texas High Refinished pricing matrix",
+    description: company.pricingMatrix.disclaimer,
+    url: `${SITE_URL}${path}#pricing`,
+    itemListElement: company.pricingMatrix.groups.map((group, groupIndex) => ({
+      "@type": "OfferCatalog",
+      position: groupIndex + 1,
+      name: group.title,
+      description: group.summary,
+      itemListElement: group.items.map((item, itemIndex) => ({
+        "@type": "Offer",
+        position: itemIndex + 1,
+        name: item.service,
+        priceCurrency: "USD",
+        priceSpecification: {
+          "@type": "PriceSpecification",
+          priceCurrency: "USD",
+          description: item.price,
+        },
+        itemOffered: {
+          "@type": "Service",
+          name: item.service,
+          serviceType: group.title,
+          areaServed: company.location.region,
+          provider: { "@id": `${SITE_URL}/#business` },
+        },
+      })),
     })),
   };
 }
