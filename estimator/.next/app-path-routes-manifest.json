@@ -1,0 +1,5 @@
+{
+  "/api/estimate/route": "/api/estimate",
+  "/_not-found/page": "/_not-found",
+  "/page": "/"
+}

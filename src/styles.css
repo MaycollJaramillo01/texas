@@ -2733,3 +2733,646 @@ h3 {
     border-radius: 50%;
   }
 }
+
+/* ============================================================
+   ESTIMATOR — wizard + home band + estimate page
+   ============================================================ */
+
+/* ── Estimate page ─────────────────────────────────────────── */
+
+.estimate-page {
+  padding-top: 130px;
+  padding-bottom: 80px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.estimate-page-intro {
+  margin-bottom: 40px;
+}
+
+.estimate-page-intro h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 8px 0 14px;
+  color: var(--ink);
+}
+
+.estimate-page-intro h1 em {
+  font-style: italic;
+  color: var(--graphite);
+}
+
+.estimate-page-lede {
+  font-size: 15px;
+  color: var(--slate);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0;
+}
+
+/* ── Wizard wrapper ────────────────────────────────────────── */
+
+.estimator-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Progress bar ──────────────────────────────────────────── */
+
+.wizard-progress {
+  margin-bottom: 20px;
+}
+
+.wizard-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ash);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.wizard-progress-track {
+  height: 2px;
+  background: var(--linen);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.wizard-progress-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 1px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Step card ─────────────────────────────────────────────── */
+
+.wizard-step {
+  background: var(--ivory);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  padding: 40px 40px 36px;
+  box-shadow: var(--shadow-soft);
+}
+
+.wizard-step-heading {
+  margin-bottom: 28px;
+}
+
+.wizard-step-heading h2 {
+  font-size: clamp(1.2rem, 3.5vw, 1.55rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 6px 0 8px;
+  line-height: 1.3;
+}
+
+.wizard-step-heading h2 em {
+  font-style: italic;
+  color: var(--graphite);
+}
+
+.wizard-step-heading p {
+  font-size: 13px;
+  color: var(--ash);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Selection cards ───────────────────────────────────────── */
+
+.selection-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.selection-grid.cols-1 { grid-template-columns: 1fr; }
+.selection-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.selection-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+.selection-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  font-family: var(--font-sans);
+  width: 100%;
+}
+
+.selection-card:hover {
+  border-color: var(--graphite);
+  box-shadow: 0 4px 12px rgba(40, 32, 22, 0.08);
+}
+
+.selection-card.selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  box-shadow: 0 8px 24px rgba(40, 32, 22, 0.2);
+}
+
+.selection-card-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  transition: color 0.15s;
+  line-height: 1.3;
+}
+
+.selection-card.selected .selection-card-label {
+  color: var(--ivory);
+}
+
+.selection-card-desc {
+  font-size: 11px;
+  color: var(--ash);
+  line-height: 1.45;
+  transition: color 0.15s;
+}
+
+.selection-card.selected .selection-card-desc {
+  color: var(--silver);
+}
+
+.selection-card-check {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ivory);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  color: var(--ink);
+}
+
+.selection-card.selected .selection-card-check {
+  opacity: 1;
+}
+
+/* ── Form fields ───────────────────────────────────────────── */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.form-label .req {
+  color: var(--charcoal);
+  margin-left: 2px;
+}
+
+.form-input {
+  padding: 10px 14px;
+  border: 1px solid var(--linen);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-size: 14px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px rgba(26, 26, 28, 0.08);
+}
+
+.form-input::placeholder {
+  color: var(--silver);
+}
+
+.form-input.error {
+  border-color: #e53e3e;
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--ash);
+  line-height: 1.5;
+}
+
+.form-error {
+  font-size: 11px;
+  color: #c53030;
+  font-weight: 500;
+}
+
+/* Remove number input spinners */
+.form-input[type="number"] {
+  -moz-appearance: textfield;
+}
+.form-input[type="number"]::-webkit-outer-spin-button,
+.form-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+/* ── Inline toggle options ─────────────────────────────────── */
+
+.inline-options {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-option-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--charcoal);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  font-family: var(--font-sans);
+}
+
+.inline-option-btn:hover {
+  border-color: var(--graphite);
+}
+
+.inline-option-btn.selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--ivory);
+}
+
+/* ── Wizard navigation ─────────────────────────────────────── */
+
+.wizard-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+/* Light-background button.secondary override inside wizard */
+.wizard-step .button.secondary {
+  border-color: var(--line-strong);
+  background: transparent;
+  color: var(--ink);
+  min-height: 44px;
+  padding: 12px 22px;
+}
+
+.wizard-step .button.secondary:hover {
+  border-color: var(--ink);
+  background: rgba(26, 26, 28, 0.04);
+}
+
+.wizard-step .button.primary {
+  min-height: 44px;
+  padding: 12px 26px;
+}
+
+/* ── Estimate result ───────────────────────────────────────── */
+
+.estimate-result {
+  text-align: center;
+}
+
+.estimate-result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 99px;
+  padding: 4px 12px;
+  margin-bottom: 16px;
+}
+
+.estimate-result h2 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.estimate-result-service {
+  font-size: 12px;
+  color: var(--ash);
+  margin: 0 0 28px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.estimate-ranges {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.estimate-range-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  text-align: center;
+}
+
+.estimate-range-card.featured {
+  border-color: var(--ink);
+  background: var(--ink);
+  box-shadow: 0 10px 28px rgba(40, 32, 22, 0.2);
+}
+
+.estimate-range-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 8px;
+}
+
+.estimate-range-card.featured .estimate-range-label {
+  color: var(--silver);
+}
+
+.estimate-range-value {
+  font-size: clamp(1.15rem, 4vw, 1.6rem);
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.estimate-range-card.featured .estimate-range-value {
+  color: var(--ivory);
+}
+
+.estimate-range-sub {
+  font-size: 10px;
+  color: var(--silver);
+  margin-top: 4px;
+}
+
+.estimate-disclaimer {
+  font-size: 12px;
+  color: var(--ash);
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  padding: 14px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.estimate-result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.estimate-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 26px;
+  background: var(--ink);
+  color: var(--parchment);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  width: 100%;
+}
+
+.estimate-cta-primary:hover {
+  background: var(--graphite);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(40, 32, 22, 0.18);
+}
+
+.estimate-cta-secondary {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--ash);
+  cursor: pointer;
+  padding: 8px;
+  font-family: var(--font-sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.estimate-cta-secondary:hover {
+  color: var(--ink);
+}
+
+/* ── Inspection notice ─────────────────────────────────────── */
+
+.inspection-notice {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius);
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.inspection-notice p {
+  margin: 0;
+  font-size: 13px;
+  color: #78350f;
+}
+
+.inspection-notice p:first-child {
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+/* ── API error ─────────────────────────────────────────────── */
+
+.wizard-error {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: #c53030;
+}
+
+/* ── Trust badges below wizard ─────────────────────────────── */
+
+.wizard-trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 18px;
+  font-size: 11px;
+  color: var(--ash);
+  letter-spacing: 0.04em;
+}
+
+.wizard-trust span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── EstimatorBand (Home page section) ─────────────────────── */
+
+.estimator-band {
+  background: var(--bone);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 80px 24px;
+}
+
+.estimator-band-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.estimator-band-copy h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 8px 0 14px;
+  line-height: 1.2;
+}
+
+.estimator-band-copy h2 em {
+  font-style: italic;
+  color: var(--graphite);
+}
+
+.estimator-band-lede {
+  font-size: 14px;
+  color: var(--slate);
+  line-height: 1.7;
+  margin: 0 0 28px;
+}
+
+.estimator-band-services-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin: 0 0 14px;
+}
+
+.estimator-service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.estimator-service-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--ivory);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--charcoal);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+
+.estimator-service-tag:hover {
+  border-color: var(--ink);
+  box-shadow: 0 4px 10px rgba(40, 32, 22, 0.07);
+  color: var(--ink);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 860px) {
+  .estimator-band-inner {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
+
+@media (max-width: 680px) {
+  .estimate-page {
+    padding-top: 110px;
+  }
+
+  .wizard-step {
+    padding: 24px 20px 22px;
+  }
+
+  .selection-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .selection-grid.cols-2 { grid-template-columns: 1fr; }
+  .estimate-ranges { grid-template-columns: 1fr; }
+
+  .estimator-service-grid { grid-template-columns: 1fr; }
+  .estimator-band { padding: 56px 20px; }
+}
+
+@media (max-width: 420px) {
+  .inline-options { flex-direction: column; }
+  .estimate-ranges { grid-template-columns: 1fr; }
+}

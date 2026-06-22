@@ -185,9 +185,9 @@ function CTABand() {
           <WhatsAppIcon size={18} />
           WhatsApp
         </a>
-        <Link className="button primary" to="/contact">
+        <Link className="button primary" to="/estimate">
           <Mail size={17} />
-          Request an Estimate
+          Get Free Estimate
         </Link>
         <a className="button secondary" href={`tel:${company.contact.phoneRaw}`}>
           <Phone size={17} />

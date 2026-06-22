@@ -3,6 +3,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion
 import { Link } from "react-router-dom";
 import {
   ArrowUpRight,
+  Calculator,
   Factory,
   Mail,
   MapPin,
@@ -314,6 +315,58 @@ function GalleryPreview() {
   );
 }
 
+const ESTIMATOR_SERVICES = [
+  { href: "/estimate?service=interior_painting",   label: "Interior Painting" },
+  { href: "/estimate?service=exterior_painting",   label: "Exterior Painting" },
+  { href: "/estimate?service=cabinet_refinishing", label: "Cabinet Refinishing" },
+  { href: "/estimate?service=drywall",             label: "Drywall" },
+  { href: "/estimate?service=drywall_repair",      label: "Drywall Repair" },
+  { href: "/estimate?service=tile",                label: "Tile Installation" },
+  { href: "/estimate?service=stain_clear",         label: "Stain & Clear" },
+];
+
+function EstimatorBand() {
+  return (
+    <MotionSection className="estimator-band">
+      <div className="estimator-band-inner">
+        <div className="estimator-band-copy">
+          <Reveal>
+            <p className="eyebrow">
+              <Calculator size={13} aria-hidden="true" style={{ display: "inline", verticalAlign: "middle", marginRight: "6px" }} />
+              Free Estimator
+            </p>
+            <h2>
+              Know your investment <em>before you pick up the phone.</em>
+            </h2>
+            <p className="estimator-band-lede">
+              Answer a few questions about your project and receive a real investment range in
+              minutes — calculated privately on our servers.
+            </p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <Link className="button primary" to="/estimate">
+              <Calculator size={16} />
+              Get Free Estimate
+            </Link>
+          </Reveal>
+        </div>
+
+        <Reveal delay={0.06} className="estimator-band-services">
+          <p className="estimator-band-services-label">Quick-start by service</p>
+          <div className="estimator-service-grid">
+            {ESTIMATOR_SERVICES.map((svc) => (
+              <Link key={svc.href} to={svc.href} className="estimator-service-tag">
+                <ArrowUpRight size={12} aria-hidden="true" />
+                {svc.label}
+              </Link>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </MotionSection>
+  );
+}
+
 function CTABand() {
   return (
     <MotionSection className="cta-band">
@@ -333,9 +386,9 @@ function CTABand() {
           <WhatsAppIcon size={18} />
           WhatsApp Now
         </a>
-        <Link className="button primary" to="/contact">
-          <Mail size={17} />
-          Request an Estimate
+        <Link className="button primary" to="/estimate">
+          <Calculator size={17} />
+          Get Free Estimate
         </Link>
         <a className="button secondary" href={`tel:${company.contact.phoneRaw}`}>
           <Phone size={17} />
@@ -380,6 +433,7 @@ export default function HomePage() {
       <Hero />
       <PriorityServices />
       <ShopSection />
+      <EstimatorBand />
       <Pillars />
       <GalleryPreview />
       <CTABand />
