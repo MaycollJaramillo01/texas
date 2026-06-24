@@ -413,6 +413,65 @@ const STEP_LABELS = ["Client Type", "Service", "Project Details", "Your Info", "
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_LEAD = { name: "", email: "", phone: "", city: "" };
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "1aee610e-09be-4e78-beff-5a4fa4187425";
+const TEST_CC_EMAIL = import.meta.env.VITE_TEST_CC_EMAIL || "";
+
+const usd = (n) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+
+async function sendEstimateLeadEmail({ customerType, service, details, lead, estimate }) {
+  const customerLabel = CUSTOMER_OPTIONS.find((item) => item.value === customerType)?.label ?? customerType;
+  const serviceLabel = SERVICE_LABELS[service] ?? service;
+  const message = [
+    "New estimator lead from texashighrefinished.com",
+    "",
+    `Name: ${lead.name}`,
+    `Email: ${lead.email}`,
+    `Phone: ${lead.phone}`,
+    `City: ${lead.city}`,
+    "",
+    `Customer type: ${customerLabel}`,
+    `Service: ${serviceLabel}`,
+    "",
+    `Low range: ${usd(estimate.low)}`,
+    `Typical project: ${usd(estimate.typical)}`,
+    `Premium range: ${usd(estimate.premium)}`,
+    `Inspection recommended: ${estimate.inspectionRecommended ? "Yes" : "No"}`,
+    "",
+    "Project details:",
+    JSON.stringify(details, null, 2),
+  ].join("\n");
+
+  const response = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      access_key: WEB3FORMS_ACCESS_KEY,
+      ...(TEST_CC_EMAIL ? { ccemail: TEST_CC_EMAIL } : {}),
+      subject: `New estimator lead - ${serviceLabel} - ${lead.city}`,
+      from_name: `${lead.name} - THR Estimator`,
+      replyto: lead.email,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      city: lead.city,
+      service: serviceLabel,
+      customer_type: customerLabel,
+      estimate_low: usd(estimate.low),
+      estimate_typical: usd(estimate.typical),
+      estimate_premium: usd(estimate.premium),
+      message,
+    }),
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || "Email could not be sent.");
+  }
+}
 
 // ─── Main wizard ──────────────────────────────────────────────────────────────
 
@@ -469,6 +528,12 @@ export default function EstimatorWizard({ initialService }) {
       const json = await res.json();
       if (!json.success || !json.estimate) {
         setApiError(json.error ?? "Something went wrong. Please try again.");
+        return;
+      }
+      try {
+        await sendEstimateLeadEmail({ customerType, service, details, lead, estimate: json.estimate });
+      } catch {
+        setApiError("Estimate calculated, but the email could not be sent. Please try again or contact us by phone.");
         return;
       }
       setEstimate(json.estimate);

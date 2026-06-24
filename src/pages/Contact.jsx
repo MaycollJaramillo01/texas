@@ -17,7 +17,8 @@ import PageHeader from "../components/PageHeader";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import SEO from "../components/SEO";
 
-const WEB3FORMS_KEY = "1aee610e-09be-4e78-beff-5a4fa4187425";
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "1aee610e-09be-4e78-beff-5a4fa4187425";
+const TEST_CC_EMAIL = import.meta.env.VITE_TEST_CC_EMAIL || "";
 
 function ContactForm() {
   const [form, setForm] = useState({
@@ -49,7 +50,8 @@ function ContactForm() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
+          access_key: WEB3FORMS_ACCESS_KEY,
+          ...(TEST_CC_EMAIL ? { ccemail: TEST_CC_EMAIL } : {}),
           subject: `New estimate request — ${form.service}`,
           from_name: `${form.name} · texashighrefinished.com`,
           replyto: form.email,
@@ -76,7 +78,7 @@ function ContactForm() {
         });
       } else {
         setStatus("error");
-        setErrorMsg(result.message || "Something went wrong. Please try again.");
+        setErrorMsg(result.error || result.message || "Something went wrong. Please try again.");
       }
     } catch (err) {
       setStatus("error");

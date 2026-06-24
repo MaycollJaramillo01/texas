@@ -1,9 +1,5 @@
 // Vercel serverless function — ALL pricing logic lives here (never reaches the client).
 
-import { Resend } from 'resend';
-
-const NOTIFY_EMAILS = ['Pvpropainting@gmail.com', 'maycolljaramillo01@gmail.com'];
-
 const SERVICE_NAMES = {
   interior_painting: 'Interior Painting',
   exterior_painting: 'Exterior Painting',
@@ -102,157 +98,8 @@ function formatDetails(service, d) {
     default: return [];
   }})();
   return rows.filter(Boolean);
-  }
 }
 
-function buildLeadEmail(lead, service, customerType, projectDetails, estimate, isTest = false) {
-  const svc     = SERVICE_NAMES[service] ?? service;
-  const ct      = CUSTOMER_NAMES[customerType] ?? customerType;
-  const ts      = new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', dateStyle: 'full', timeStyle: 'short' });
-  const details = formatDetails(service, projectDetails);
-
-  const testBanner = isTest ? `
-        <tr>
-          <td style="background:#fef3c7;border-bottom:2px dashed #f59e0b;padding:14px 32px;">
-            <p style="margin:0;font-size:13px;font-weight:700;color:#92400e;text-align:center;">
-              ⚠️  ESTE ES UN EMAIL DE PRUEBA — No hay cliente real detrás de este mensaje
-            </p>
-          </td>
-        </tr>` : '';
-
-  const detailRows = details.map((row, i) => {
-    const border = i < details.length - 1 ? 'border-bottom:1px solid rgba(26,26,28,0.07);' : '';
-    return `<tr>
-              <td width="45%" style="padding:7px 12px 7px 0;${border}">
-                <span style="font-size:11px;color:#7a7a82;">${row.label}</span>
-              </td>
-              <td width="55%" style="padding:7px 0;${border}">
-                <span style="font-size:13px;font-weight:600;color:#1a1a1c;">${row.value}</span>
-              </td>
-            </tr>`;
-  }).join('');
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${isTest ? '[PRUEBA] ' : ''}Nuevo Lead — THR Estimator</title>
-</head>
-<body style="margin:0;padding:0;background:#f4f0ea;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#1a1a1c;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px;">
-    <tr><td align="center">
-      <table width="100%" style="max-width:560px;background:#fbf9f5;border:1px solid rgba(26,26,28,0.12);border-radius:4px;overflow:hidden;">
-
-        <!-- Header -->
-        <tr>
-          <td style="background:#1a1a1c;padding:28px 32px;">
-            <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#a8a8af;">Texas High Refinished</p>
-            <h1 style="margin:6px 0 0;font-size:22px;font-weight:800;color:#fbf9f5;letter-spacing:-0.02em;">${isTest ? '⚠️ [PRUEBA] ' : ''}Nuevo Lead — Estimator</h1>
-          </td>
-        </tr>
-
-        ${testBanner}
-
-        <!-- Contact info -->
-        <tr>
-          <td style="padding:28px 32px 0;">
-            <p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7a82;">Datos de contacto</p>
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="padding:7px 0;border-bottom:1px solid rgba(26,26,28,0.08);">
-                  <span style="font-size:11px;color:#7a7a82;display:block;margin-bottom:1px;">Nombre</span>
-                  <span style="font-size:15px;font-weight:600;">${lead.name}</span>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;border-bottom:1px solid rgba(26,26,28,0.08);">
-                  <span style="font-size:11px;color:#7a7a82;display:block;margin-bottom:1px;">Email</span>
-                  <a href="mailto:${lead.email}" style="font-size:15px;font-weight:600;color:#1a1a1c;text-decoration:none;">${lead.email}</a>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;border-bottom:1px solid rgba(26,26,28,0.08);">
-                  <span style="font-size:11px;color:#7a7a82;display:block;margin-bottom:1px;">Teléfono</span>
-                  <a href="tel:${lead.phone.replace(/\D/g,'')}" style="font-size:15px;font-weight:600;color:#1a1a1c;text-decoration:none;">${lead.phone}</a>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:7px 0;">
-                  <span style="font-size:11px;color:#7a7a82;display:block;margin-bottom:1px;">Ciudad</span>
-                  <span style="font-size:15px;font-weight:600;">${lead.city}</span>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Project summary -->
-        <tr>
-          <td style="padding:22px 32px 0;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0ede8;border-radius:3px;padding:14px 16px;">
-              <tr>
-                <td width="50%">
-                  <span style="font-size:10px;color:#7a7a82;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.07em;">Servicio</span>
-                  <span style="font-size:14px;font-weight:700;color:#1a1a1c;">${svc}</span>
-                </td>
-                <td width="50%">
-                  <span style="font-size:10px;color:#7a7a82;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.07em;">Tipo de cliente</span>
-                  <span style="font-size:14px;font-weight:700;color:#1a1a1c;">${ct}</span>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Project details -->
-        ${details.length ? `
-        <tr>
-          <td style="padding:22px 32px 0;">
-            <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7a82;">Detalles del proyecto</p>
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f6f1;border:1px solid rgba(26,26,28,0.09);border-radius:3px;padding:4px 14px;">
-              ${detailRows}
-            </table>
-          </td>
-        </tr>` : ''}
-
-        <!-- Estimate ranges -->
-        <tr>
-          <td style="padding:22px 32px 0;">
-            <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7a82;">Rango de inversión estimada</p>
-            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid rgba(26,26,28,0.12);border-radius:4px;overflow:hidden;">
-              <tr>
-                <td align="center" width="33%" style="padding:16px 8px;border-right:1px solid rgba(26,26,28,0.08);background:#f9f6f1;">
-                  <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7a82;display:block;margin-bottom:6px;">Low</span>
-                  <span style="font-size:20px;font-weight:800;color:#1a1a1c;">${usd(estimate.low)}</span>
-                </td>
-                <td align="center" width="34%" style="padding:16px 8px;border-right:1px solid rgba(26,26,28,0.08);background:#1a1a1c;">
-                  <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#a8a8af;display:block;margin-bottom:6px;">Typical ★</span>
-                  <span style="font-size:20px;font-weight:800;color:#fbf9f5;">${usd(estimate.typical)}</span>
-                </td>
-                <td align="center" width="33%" style="padding:16px 8px;background:#f9f6f1;">
-                  <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7a82;display:block;margin-bottom:6px;">Premium</span>
-                  <span style="font-size:20px;font-weight:800;color:#1a1a1c;">${usd(estimate.premium)}</span>
-                </td>
-              </tr>
-            </table>
-            ${estimate.inspectionRecommended ? `<p style="margin:10px 0 0;font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:2px;padding:10px 12px;">⚠️ Inspección en sitio recomendada para este proyecto.</p>` : ''}
-          </td>
-        </tr>
-
-        <!-- Footer -->
-        <tr>
-          <td style="padding:22px 32px 28px;">
-            <p style="margin:0;font-size:11px;color:#a8a8af;border-top:1px solid rgba(26,26,28,0.08);padding-top:14px;">${ts} · Texas High Refinished · Marble Falls, TX</p>
-          </td>
-        </tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
 
 // ─── Internal rate tables ────────────────────────────────────────────────────
 
@@ -401,17 +248,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ success: false, error: 'Calculation error. Please try again.' });
   }
 
-  // Send lead notification via Resend (fire-and-forget — doesn't block the estimate response)
-  console.info('[THR-LEAD]', JSON.stringify({ name: lead.name, email: lead.email, phone: lead.phone, city: lead.city, service, customerType, ts: new Date().toISOString() }));
-  if (process.env.RESEND_API_KEY) {
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    resend.emails.send({
-      from: 'THR Estimator <onboarding@resend.dev>',
-      to: NOTIFY_EMAILS,
-      subject: `🔔 Nuevo lead — ${SERVICE_NAMES[service] ?? service} · ${lead.city}`,
-      html: buildLeadEmail(lead, service, customerType, d, estimate),
-    }).catch((err) => console.error('[THR-EMAIL-ERR]', err));
-  }
 
   return res.status(200).json({
     success: true,
