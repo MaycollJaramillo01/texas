@@ -17,7 +17,7 @@ import PageHeader from "../components/PageHeader";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import SEO from "../components/SEO";
 
-const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "1aee610e-09be-4e78-beff-5a4fa4187425";
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "5c98dc47-4b42-4c1f-a7b6-a1c93cfd7fea";
 const TEST_CC_EMAIL = import.meta.env.VITE_TEST_CC_EMAIL || "";
 
 function ContactForm() {
