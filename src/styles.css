@@ -2933,6 +2933,27 @@ h3 {
 
 /* ── Form fields ───────────────────────────────────────────── */
 
+.form-section-heading {
+  margin: 0 0 22px;
+  padding: 16px 18px;
+  border-left: 3px solid var(--ink);
+  background: var(--ivory);
+}
+
+.form-section-heading h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.form-section-heading p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ash);
+}
+
 .form-field {
   display: flex;
   flex-direction: column;

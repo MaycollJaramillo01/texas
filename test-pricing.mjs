@@ -12,11 +12,20 @@ const _I   = { hw: 5.0, bld: 4.5, pm: 4.5, ceil: 1.5, trim: 2.5, door: 175 };
 const _IMX = { vacant: 1.0, occupied: 1.1, '8ft': 1.0, '9ft': 1.05, '10ft_plus': 1.15, rush: 1.1 };
 const _E   = { hw: 4.0, bld: 3.5, pm: 3.5, hardie: 4.0, stucco: 4.5, brick: 5.0, deck: 7.0, fence: 4.0 };
 const _EMX = { normal: 1.0, two_stories: 1.1, scraping: 1.15, colorChange: 1.1, recaulk: 1.1 };
-const _C   = { hw_std: 175, hw_prem: 225, bld_std: 150, bld_prem: 200, drawer: 85, panel: 250, island: 1500, vanity: 1200 };
-const _CMX = { light: 1.0, dark: 1.1, stain: 1.15, none: 1.0, moderate: 1.1, heavy: 1.2, rush: 1.1 };
+const _C = {
+  standard: { low: 125, typical: 150, premium: 175 },
+  premium: { low: 175, typical: 212.5, premium: 250 },
+  drawer: { low: 60, typical: 125, premium: 190 },
+  panel: { low: 150, typical: 275, premium: 400 },
+  island: { low: 500, typical: 1500, premium: 2500 },
+  color_change: { low: 5500, typical: 11750, premium: 18000 },
+};
 const _DW  = { hang: 16, tape: 1.0, orange_peel: 0.85, knockdown: 1.25, hand_trowel: 1.75, smooth_finish: 3.0 };
 const _REP = { small: 350, medium: 950, large: 2500 };
-const _T   = { tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500 };
+const _T = {
+  tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500,
+  lvp: { low: 2, high: 4 }, engineered_wood: { low: 3.5, high: 7 },
+};
 const _S   = { interior: 7.0, exterior: 8.0, sill: 150, door: 650 };
 const _MIN = {
   interior_painting: 3000, exterior_painting: 3500, cabinet_refinishing: 2500,
@@ -60,22 +69,30 @@ function calcExterior(ct, d) {
 }
 
 function calcCabinet(ct, d) {
-  const pref     = ct === 'homeowner' ? 'hw' : 'bld';
-  const doorRate = d.finishLevel === 'premium' ? _C[`${pref}_prem`] : _C[`${pref}_std`];
-  let base = n(d.cabinetDoors) * doorRate + n(d.drawerFronts) * _C.drawer + n(d.endPanels) * _C.panel;
-  if (b(d.includeIsland))  base += _C.island;
-  if (b(d.includeVanity))  base += _C.vanity;
-  let mx = (_CMX[d.colorComplexity] ?? 1) * (_CMX[d.damage] ?? 1);
-  if (b(d.rushProject)) mx *= _CMX.rush;
-  base *= mx;
-  return toRange(base, 'cabinet_refinishing', 'cabinet');
+  if (d.finishLevel === 'color_change') return { ..._C.color_change, inspectionRecommended: true };
+  const doorRate = d.finishLevel === 'premium' ? _C.premium : _C.standard;
+  const quantities = [
+    [n(d.cabinetDoors), doorRate],
+    [n(d.drawerFronts), _C.drawer],
+    [n(d.endPanels), _C.panel],
+    [b(d.includeIsland) ? 1 : 0, _C.island],
+  ];
+  const range = quantities.reduce((result, [qty, rate]) => ({
+    low: result.low + qty * rate.low,
+    typical: result.typical + qty * rate.typical,
+    premium: result.premium + qty * rate.premium,
+    inspectionRecommended: false,
+  }), { low: 0, typical: 0, premium: 0, inspectionRecommended: false });
+  return { ...range, low: Math.round(range.low), typical: Math.round(range.typical), premium: Math.round(range.premium) };
 }
 
 function calcDrywall(d) {
   let base = 0;
   if (b(d.hangDrywall))  base += n(d.sheets) * _DW.hang;
-  if (b(d.tapeAndFloat)) base += n(d.squareFootage) * _DW.tape;
-  if (d.textureType && d.textureType !== 'none') base += n(d.squareFootage) * (_DW[d.textureType] ?? 0);
+  if (b(d.tapeAndFloat)) base += n(d.tapeSquareFootage ?? d.squareFootage) * _DW.tape;
+  if (d.textureType && d.textureType !== 'none') {
+    base += n(d.textureSquareFootage ?? d.squareFootage) * (_DW[d.textureType] ?? 0);
+  }
   return toRange(base, 'drywall');
 }
 
@@ -85,6 +102,16 @@ function calcRepair(d) {
 
 function calcTile(d) {
   if (d.tileService === 'full_shower_remodel') return toRange(_T.full_shower_remodel, 'tile');
+  const rateRange = _T[d.tileService];
+  if (rateRange && typeof rateRange === 'object') {
+    const sqft = n(d.squareFootage);
+    return {
+      low: Math.round(sqft * rateRange.low),
+      typical: Math.round(sqft * ((rateRange.low + rateRange.high) / 2)),
+      premium: Math.round(sqft * rateRange.high),
+      inspectionRecommended: false,
+    };
+  }
   return toRange(n(d.squareFootage) * (_T[d.tileService] ?? 12), 'tile');
 }
 
@@ -239,71 +266,47 @@ test(
 console.log('\n【CABINET REFINISHING】');
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Test 10: Homeowner, 20 puertas estándar, 6 cajones, light, sin daño
-// base = 20×175 + 6×85 = 3500 + 510 = 4010
-// mx = 1.0(light) × 1.0(none) = 1.0
-// Cabinet range: ×0.90 / ×1.00 / ×1.10
-// L = round(4010×0.90) = round(3609) = 3600
-// T = round(4010) = 4000   P = round(4010×1.10) = round(4411) = 4400
-// 3609/100=36.09, Math.round=36 → 3600 ✓
-// 4010/100=40.1, Math.round=40 → 4000 ✓
-// 4411/100=44.11, Math.round=44 → 4400 ✓
+// Test 10: 20 puertas builder grade + 6 drawer fronts.
 test(
-  '#10 Homeowner 20 puertas std + 6 cajones, light, sin daño',
-  calcCabinet('homeowner', { cabinetDoors: 20, drawerFronts: 6, finishLevel: 'standard',
-    colorComplexity: 'light', damage: 'none' }),
-  { low: 3600, typical: 4000, premium: 4400 }
+  '#10 20 puertas builder grade + 6 drawer fronts',
+  calcCabinet('homeowner', { cabinetDoors: 20, drawerFronts: 6, finishLevel: 'standard' }),
+  { low: 2860, typical: 3750, premium: 4640, inspectionRecommended: false }
 );
 
-// Test 11: Builder, 24 puertas premium, island, dark, moderate, rush
-// base = 24×200 + 1500 = 4800 + 1500 = 6300
-// mx = 1.1(dark) × 1.1(moderate) × 1.1(rush) = 1.331
-// total = 6300×1.331 = 8385.3
-// L = round(8385.3×0.90) = round(7546.77) = 7500
-// T = round(8385.3) = 8400   P = round(8385.3×1.10) = round(9223.83) = 9200
-// 7546.77/100=75.4677, Math.round=75 → 7500 ✓
-// 8385.3/100=83.853, Math.round=84 → 8400 ✓
-// 9223.83/100=92.2383, Math.round=92 → 9200 ✓
+// Test 11: 24 puertas premium + kitchen island.
 test(
-  '#11 Builder 24 puertas premium + island, dark + moderate + rush',
-  calcCabinet('builder', { cabinetDoors: 24, drawerFronts: 0, finishLevel: 'premium',
-    includeIsland: true, colorComplexity: 'dark', damage: 'moderate', rushProject: true }),
-  { low: 7500, typical: 8400, premium: 9200 }
+  '#11 24 puertas premium + kitchen island',
+  calcCabinet('builder', { cabinetDoors: 24, drawerFronts: 0, finishLevel: 'premium', includeIsland: true }),
+  { low: 4700, typical: 6600, premium: 8500, inspectionRecommended: false }
 );
 
-// Test 12: Homeowner, 15 puertas std + vanity + 2 end panels, stain color, heavy damage
-// base = 15×175 + 1200 + 2×250 = 2625 + 1200 + 500 = 4325
-// mx = 1.15(stain) × 1.2(heavy) = 1.38
-// total = 4325×1.38 = 5968.5
-// L = round(5968.5×0.90) = round(5371.65) = 5400
-// T = round(5968.5) = 6000   P = round(5968.5×1.10) = round(6565.35) = 6600
-// 5371.65/100=53.7165, Math.round=54 → 5400 ✓
-// 5968.5/100=59.685, Math.round=60 → 6000 ✓
-// 6565.35/100=65.6535, Math.round=66 → 6600 ✓
+// Test 12: 15 puertas builder grade + 2 end panels.
 test(
-  '#12 Homeowner 15 puertas + vanity + 2 panels, stain + heavy damage',
-  calcCabinet('homeowner', { cabinetDoors: 15, drawerFronts: 0, endPanels: 2, finishLevel: 'standard',
-    includeVanity: true, colorComplexity: 'stain', damage: 'heavy' }),
-  { low: 5400, typical: 6000, premium: 6600 }
+  '#12 15 puertas builder grade + 2 end panels',
+  calcCabinet('homeowner', { cabinetDoors: 15, drawerFronts: 0, endPanels: 2, finishLevel: 'standard' }),
+  { low: 2175, typical: 2800, premium: 3425, inspectionRecommended: false }
+);
+
+test(
+  '#13 Complete kitchen color change',
+  calcCabinet('homeowner', { finishLevel: 'color_change' }),
+  { low: 5500, typical: 11750, premium: 18000, inspectionRecommended: true }
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
 console.log('\n【DRYWALL】');
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Test 13: 40 sheets hang + 800 sqft tape + knockdown texture
-// base = 40×16 + 800×1.0 + 800×1.25 = 640 + 800 + 1000 = 2440
-// L = round(2440×0.85) = round(2074) = 2100
-// T = round(2440) = 2400   P = round(2440×1.15) = round(2806) = 2800
-// 2074/100=20.74, Math.round=21 → 2100 ✓
-// 2806/100=28.06, Math.round=28 → 2800 ✓
+// Test 14: each drywall service uses its own measurement.
+// base = 40×16 + 800×1.0 + 500×1.25 = 640 + 800 + 625 = 2065
 test(
-  '#13 40 sheets + 800 sqft tape + knockdown',
-  calcDrywall({ hangDrywall: true, sheets: 40, tapeAndFloat: true, squareFootage: 800, textureType: 'knockdown' }),
-  { low: 2100, typical: 2400, premium: 2800 }
+  '#14 40 sheets + 800 sqft tape + 500 sqft knockdown',
+  calcDrywall({ hangDrywall: true, sheets: 40, tapeAndFloat: true, tapeSquareFootage: 800,
+    textureType: 'knockdown', textureSquareFootage: 500 }),
+  { low: 1800, typical: 2100, premium: 2400 }
 );
 
-// Test 14: Solo smooth finish, 500 sqft (sin hang, sin tape)
+// Test 15: Solo smooth finish, 500 sqft (sin hang, sin tape)
 // base = 500×3.0 = 1500
 // 1500 > 500 (min) ✓
 // L = round(1500×0.85) = round(1275) = 1300
@@ -311,8 +314,8 @@ test(
 // 1275/100=12.75, Math.round=13 → 1300 ✓
 // 1725/100=17.25, Math.round=17 → 1700 ✓
 test(
-  '#14 Solo smooth finish 500 sqft',
-  calcDrywall({ hangDrywall: false, tapeAndFloat: false, squareFootage: 500, textureType: 'smooth_finish' }),
+  '#15 Solo smooth finish 500 sqft',
+  calcDrywall({ hangDrywall: false, tapeAndFloat: false, textureSquareFootage: 500, textureType: 'smooth_finish' }),
   { low: 1300, typical: 1500, premium: 1700 }
 );
 
@@ -326,7 +329,7 @@ console.log('\n【DRYWALL REPAIR】');
 // P = round(950×1.15) = round(1092.5) = 1100
 // inspectionRecommended = false
 test(
-  '#15 Drywall repair — medium ($950)',
+  '#16 Drywall repair — medium ($950)',
   calcRepair({ repairSize: 'medium' }),
   { low: 800, typical: 1000, premium: 1100, inspectionRecommended: false }
 );
@@ -338,7 +341,7 @@ test(
 // 2125/100=21.25, Math.round=21 → 2100 ✓
 // 2875/100=28.75, Math.round=29 → 2900 ✓
 test(
-  '#16 Drywall repair — large ($2,500 + inspección recomendada)',
+  '#17 Drywall repair — large ($2,500 + inspección recomendada)',
   calcRepair({ repairSize: 'large' }),
   { low: 2100, typical: 2500, premium: 2900, inspectionRecommended: true }
 );
@@ -354,7 +357,7 @@ console.log('\n【TILE】');
 // 2040/100=20.4, Math.round=20 → 2000 ✓
 // 2760/100=27.6, Math.round=28 → 2800 ✓
 test(
-  '#17 Tile flooring 200 sqft',
+  '#18 Tile flooring 200 sqft',
   calcTile({ tileService: 'tile_flooring', squareFootage: 200 }),
   { low: 2000, typical: 2400, premium: 2800 }
 );
@@ -363,7 +366,7 @@ test(
 // base = 80×30 = 2400
 // L = 2000   T = 2400   P = 2800  (mismo resultado que arriba, coincidencia)
 test(
-  '#18 Shower tile 80 sqft',
+  '#19 Shower tile 80 sqft',
   calcTile({ tileService: 'shower_tile', squareFootage: 80 }),
   { low: 2000, typical: 2400, premium: 2800 }
 );
@@ -374,7 +377,7 @@ test(
 // 5525/100=55.25, Math.round=55 → 5500 ✓
 // 7475/100=74.75, Math.round=75 → 7500 ✓
 test(
-  '#19 Full shower remodel (tarifa fija $6,500)',
+  '#20 Full shower remodel (tarifa fija $6,500)',
   calcTile({ tileService: 'full_shower_remodel' }),
   { low: 5500, typical: 6500, premium: 7500 }
 );
@@ -387,9 +390,21 @@ test(
 // 637.5/100=6.375, Math.round=6 → 600 ✓
 // 862.5/100=8.625, Math.round=9 → 900 ✓
 test(
-  '#20 Backsplash 30 sqft',
+  '#21 Backsplash 30 sqft',
   calcTile({ tileService: 'backsplash', squareFootage: 30 }),
   { low: 600, typical: 800, premium: 900 }
+);
+
+test(
+  '#22 LVP 200 sqft at $2.00–$4.00/sqft',
+  calcTile({ tileService: 'lvp', squareFootage: 200 }),
+  { low: 400, typical: 600, premium: 800, inspectionRecommended: false }
+);
+
+test(
+  '#23 Engineered wood 200 sqft at $3.50–$7.00/sqft',
+  calcTile({ tileService: 'engineered_wood', squareFootage: 200 }),
+  { low: 700, typical: 1050, premium: 1400, inspectionRecommended: false }
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -404,7 +419,7 @@ console.log('\n【STAIN & CLEAR】');
 // 3102.5/100=31.025, Math.round=31 → 3100 ✓
 // 4197.5/100=41.975, Math.round=42 → 4200 ✓
 test(
-  '#21 Stain exterior 300 sqft + 4 sills + 1 puerta entrada',
+  '#24 Stain exterior 300 sqft + 4 sills + 1 puerta entrada',
   calcStain({ type: 'exterior', squareFootage: 300, windowSills: 4, entryDoors: 1 }),
   { low: 3100, typical: 3700, premium: 4200 }
 );
@@ -418,7 +433,7 @@ test(
 // 892.5/100=8.925, Math.round=9 → 900 ✓
 // 1207.5/100=12.075, Math.round=12 → 1200 ✓
 test(
-  '#22 Stain interior 150 sqft solo',
+  '#25 Stain interior 150 sqft solo',
   calcStain({ type: 'interior', squareFootage: 150, windowSills: 0, entryDoors: 0 }),
   { low: 900, typical: 1100, premium: 1200 }
 );

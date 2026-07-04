@@ -198,89 +198,90 @@ function CabinetForm({ defaults, onChange }) {
   const [drawers, setDrawers] = useState(num(defaults.drawerFronts ?? 0));
   const [finish, setFinish] = useState(defaults.finishLevel ?? "standard");
   const [island, setIsland] = useState(defaults.includeIsland ?? false);
-  const [vanity, setVanity] = useState(defaults.includeVanity ?? false);
   const [panels, setPanels] = useState(num(defaults.endPanels ?? 0));
-  const [color, setColor] = useState(defaults.colorComplexity ?? "light");
-  const [damage, setDamage] = useState(defaults.damage ?? "none");
-  const [rush, setRush] = useState(defaults.rushProject ?? false);
 
   const emit = useCallback(() => {
     const data = { cabinetDoors: Math.round(parseN(doors)), drawerFronts: Math.round(parseN(drawers)),
-      finishLevel: finish, includeIsland: island, includeVanity: vanity, endPanels: Math.round(parseN(panels)),
-      colorComplexity: color, damage, rushProject: rush };
-    onChange(data, parseN(doors) >= 1);
-  }, [doors, drawers, finish, island, vanity, panels, color, damage, rush, onChange]);
+      finishLevel: finish, includeIsland: island, endPanels: Math.round(parseN(panels)) };
+    onChange(data, finish === "color_change" || parseN(doors) >= 1);
+  }, [doors, drawers, finish, island, panels, onChange]);
 
   useEffect(() => { emit(); }, [emit]);
 
   return (
     <>
-      <NumberInput label="Number of cabinet doors" value={doors} onChange={setDoors} placeholder="e.g. 24" required
-        hint="Count each individual cabinet door." />
-      <NumberInput label="Number of drawer fronts" value={drawers} onChange={setDrawers} placeholder="0" />
       <Field label="Finish level" required>
-        <InlineOptions options={[{ value: "standard", label: "Standard" }, { value: "premium", label: "Premium" }]}
-          value={finish} onChange={setFinish} />
-      </Field>
-      <Field label="Include kitchen island?">
-        <InlineOptions options={[{ value: "false", label: "No" }, { value: "true", label: "Yes" }]}
-          value={String(island)} onChange={(v) => setIsland(v === "true")} />
-      </Field>
-      <Field label="Include bathroom vanity?">
-        <InlineOptions options={[{ value: "false", label: "No" }, { value: "true", label: "Yes" }]}
-          value={String(vanity)} onChange={(v) => setVanity(v === "true")} />
-      </Field>
-      <NumberInput label="End / side panels" value={panels} onChange={setPanels} placeholder="0"
-        hint="Exposed cabinet sides or filler panels." />
-      <Field label="Color complexity" required>
         <div className="selection-grid cols-3">
-          {[{ value: "light", label: "Light color" }, { value: "dark", label: "Dark color" }, { value: "stain", label: "Stain + clear" }]
-            .map((o) => <SelectionCard key={o.value} {...o} selected={color === o.value} onSelect={setColor} />)}
+          {[{ value: "standard", label: "Builder Grade Finish", description: "$125–$175 per door" },
+            { value: "premium", label: "Premium Shop Finish", description: "$175–$250 per door" },
+            { value: "color_change", label: "Complete Kitchen Color Change", description: "$5,500–$18,000+" }]
+            .map((o) => <SelectionCard key={o.value} {...o} selected={finish === o.value} onSelect={setFinish} />)}
         </div>
       </Field>
-      <Field label="Existing damage or repairs needed?" required>
-        <div className="selection-grid cols-3">
-          {[{ value: "none", label: "None" }, { value: "moderate", label: "Moderate" }, { value: "heavy", label: "Heavy" }]
-            .map((o) => <SelectionCard key={o.value} {...o} selected={damage === o.value} onSelect={setDamage} />)}
-        </div>
-      </Field>
-      <Field label="Rush project?">
-        <InlineOptions options={[{ value: "false", label: "No" }, { value: "true", label: "Yes — rush" }]}
-          value={String(rush)} onChange={(v) => setRush(v === "true")} />
-      </Field>
+      {finish !== "color_change" && (
+        <>
+          <NumberInput label="Number of cabinet doors" value={doors} onChange={setDoors} placeholder="e.g. 24" required
+            hint="Count each individual cabinet door." />
+          <NumberInput label="Number of drawer fronts" value={drawers} onChange={setDrawers} placeholder="0"
+            hint="$60–$190 each." />
+          <NumberInput label="End / side panels" value={panels} onChange={setPanels} placeholder="0"
+            hint="Exposed cabinet sides or filler panels. $150–$400 each." />
+          <Field label="Include kitchen island?">
+            <InlineOptions options={[{ value: "false", label: "No" }, { value: "true", label: "Yes — $500–$2,500" }]}
+              value={String(island)} onChange={(v) => setIsland(v === "true")} />
+          </Field>
+        </>
+      )}
     </>
   );
 }
 
 function DrywallForm({ defaults, onChange }) {
   const [sheets, setSheets] = useState(num(defaults.sheets ?? 0));
-  const [sqft, setSqft] = useState(num(defaults.squareFootage ?? 0));
+  const [tapeSqft, setTapeSqft] = useState(num(defaults.tapeSquareFootage ?? defaults.squareFootage ?? 0));
+  const [textureSqft, setTextureSqft] = useState(num(defaults.textureSquareFootage ?? defaults.squareFootage ?? 0));
   const [hang, setHang] = useState(defaults.hangDrywall ?? false);
   const [tape, setTape] = useState(defaults.tapeAndFloat ?? false);
   const [texture, setTexture] = useState(defaults.textureType ?? "none");
 
   const emit = useCallback(() => {
-    const data = { sheets: Math.round(parseN(sheets)), squareFootage: parseN(sqft),
-      hangDrywall: hang, tapeAndFloat: tape, textureType: texture };
-    onChange(data, parseN(sheets) > 0 || parseN(sqft) > 0);
-  }, [sheets, sqft, hang, tape, texture, onChange]);
+    const data = {
+      hangDrywall: hang,
+      sheets: Math.round(parseN(sheets)),
+      tapeAndFloat: tape,
+      tapeSquareFootage: parseN(tapeSqft),
+      textureType: texture,
+      textureSquareFootage: parseN(textureSqft),
+    };
+    const isValid = (hang && data.sheets > 0)
+      || (tape && data.tapeSquareFootage > 0)
+      || (texture !== "none" && data.textureSquareFootage > 0);
+    onChange(data, isValid);
+  }, [sheets, tapeSqft, textureSqft, hang, tape, texture, onChange]);
 
   useEffect(() => { emit(); }, [emit]);
 
   return (
     <>
-      <Field label="Include drywall hang / installation?">
+      <div className="form-section-heading">
+        <h3>Choose all drywall services needed</h3>
+        <p>Each service is measured and calculated separately.</p>
+      </div>
+
+      <Field label="1. New drywall installation / hanging">
         <InlineOptions options={[{ value: "false", label: "No" }, { value: "true", label: "Yes" }]}
           value={String(hang)} onChange={(v) => setHang(v === "true")} />
       </Field>
       {hang && <NumberInput label="Number of drywall sheets" value={sheets} onChange={setSheets} placeholder="e.g. 40" />}
-      <Field label="Include tape & float?">
+
+      <Field label="2. Tape & float / finishing">
         <InlineOptions options={[{ value: "false", label: "No" }, { value: "true", label: "Yes" }]}
           value={String(tape)} onChange={(v) => setTape(v === "true")} />
       </Field>
-      <NumberInput label="Total area" value={sqft} onChange={setSqft} placeholder="e.g. 800" unit="sq ft"
-        hint="Used for tape & float and texture calculation." />
-      <Field label="Texture finish" required>
+      {tape && <NumberInput label="Tape & float area" value={tapeSqft} onChange={setTapeSqft}
+        placeholder="e.g. 800" unit="sq ft" hint="Enter only the area receiving tape & float." />}
+
+      <Field label="3. Texture application">
         <div className="selection-grid cols-2">
           {[{ value: "none", label: "No texture" }, { value: "orange_peel", label: "Orange Peel" },
             { value: "knockdown", label: "Knockdown" }, { value: "hand_trowel", label: "Hand Trowel" },
@@ -288,6 +289,8 @@ function DrywallForm({ defaults, onChange }) {
             .map((o) => <SelectionCard key={o.value} {...o} selected={texture === o.value} onSelect={setTexture} />)}
         </div>
       </Field>
+      {texture !== "none" && <NumberInput label="Texture area" value={textureSqft} onChange={setTextureSqft}
+        placeholder="e.g. 800" unit="sq ft" hint="Enter only the area receiving the selected texture." />}
     </>
   );
 }
@@ -336,10 +339,12 @@ function TileForm({ defaults, onChange }) {
 
   return (
     <>
-      <Field label="Type of tile work" required>
+      <Field label="Type of tile or flooring work" required>
         <div className="selection-grid cols-2">
           {[{ value: "tile_flooring", label: "Tile Flooring" }, { value: "shower_tile", label: "Shower Tile" },
-            { value: "backsplash", label: "Backsplash" }, { value: "full_shower_remodel", label: "Full Shower Remodel" }]
+            { value: "backsplash", label: "Backsplash" }, { value: "full_shower_remodel", label: "Full Shower Remodel" },
+            { value: "lvp", label: "Luxury Vinyl Plank (LVP)", description: "$2.00–$4.00 / sq ft" },
+            { value: "engineered_wood", label: "Engineered Wood Flooring", description: "$3.50–$7.00 / sq ft" }]
             .map((o) => <SelectionCard key={o.value} {...o} selected={svc === o.value} onSelect={setSvc} />)}
         </div>
       </Field>
@@ -413,7 +418,7 @@ const STEP_LABELS = ["Client Type", "Service", "Project Details", "Your Info", "
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_LEAD = { name: "", email: "", phone: "", city: "" };
-const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "1aee610e-09be-4e78-beff-5a4fa4187425";
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "5c98dc47-4b42-4c1f-a7b6-a1c93cfd7fea";
 const TEST_CC_EMAIL = import.meta.env.VITE_TEST_CC_EMAIL || "";
 
 const usd = (n) =>

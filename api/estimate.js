@@ -33,12 +33,12 @@ function formatDetails(service, d) {
     ceilingHeight:   { '8ft': '8 ft', '9ft': '9 ft', '10ft_plus': '10 ft +' },
     access:          { normal: 'Una planta', two_stories: 'Dos pisos' },
     surfaceType:     { standard: 'Siding estándar', hardie: 'Hardie Board', stucco: 'Stucco', brick: 'Ladrillo' },
-    finishLevel:     { standard: 'Estándar', premium: 'Premium' },
+    finishLevel:     { standard: 'Builder Grade Finish', premium: 'Premium Shop Finish', color_change: 'Complete Kitchen Color Change' },
     colorComplexity: { light: 'Color claro', dark: 'Color oscuro', stain: 'Stain + clear' },
     damage:          { none: 'Sin daños', moderate: 'Daño moderado', heavy: 'Daño severo' },
     textureType:     { none: 'Sin textura', orange_peel: 'Orange Peel', knockdown: 'Knockdown', hand_trowel: 'Hand Trowel', smooth_finish: 'Smooth Finish' },
     repairSize:      { small: 'Pequeño (crack / un agujero)', medium: 'Mediano (múltiples parches)', large: 'Grande (sección entera / daño por agua)' },
-    tileService:     { tile_flooring: 'Piso de Tile', shower_tile: 'Tile de Ducha', backsplash: 'Backsplash', full_shower_remodel: 'Remodelación Completa de Ducha' },
+    tileService:     { tile_flooring: 'Piso de Tile', shower_tile: 'Tile de Ducha', backsplash: 'Backsplash', full_shower_remodel: 'Remodelación Completa de Ducha', lvp: 'Luxury Vinyl Plank (LVP)', engineered_wood: 'Engineered Wood Flooring' },
     type:            { interior: 'Interior', exterior: 'Exterior' },
   };
   const lk = (key, val) => (val ? MAP[key]?.[val] ?? val : null);
@@ -65,22 +65,23 @@ function formatDetails(service, d) {
       row('Cerca / Fence',          d.includeFence ? lf(d.fenceLinearFeet) : null),
     ];
     case 'cabinet_refinishing': return [
-      row('Puertas de gabinete',    num(d.cabinetDoors, 'puertas')),
-      row('Drawer fronts',          num(d.drawerFronts, 'cajones')),
-      row('End panels',             num(d.endPanels, 'panels')),
       row('Nivel de acabado',       lk('finishLevel', d.finishLevel)),
-      row('Island de cocina',       yn(d.includeIsland)),
-      row('Vanidad de baño',        yn(d.includeVanity)),
-      row('Complejidad de color',   lk('colorComplexity', d.colorComplexity)),
-      row('Daños existentes',       lk('damage', d.damage)),
-      row('Proyecto urgente',       yn(d.rushProject)),
+      ...(d.finishLevel !== 'color_change' ? [
+        row('Puertas de gabinete', num(d.cabinetDoors, 'puertas')),
+        row('Drawer fronts',       num(d.drawerFronts, 'cajones')),
+        row('End panels',          num(d.endPanels, 'panels')),
+        row('Island de cocina',    yn(d.includeIsland)),
+      ] : []),
     ];
     case 'drywall': return [
       row('Instalación de drywall', yn(d.hangDrywall)),
       ...(d.hangDrywall ? [row('Láminas (sheets)', num(d.sheets, 'láminas'))] : []),
       row('Tape & float',           yn(d.tapeAndFloat)),
-      row('Área total',             sqft(d.squareFootage)),
+      ...(d.tapeAndFloat ? [row('Área de tape & float', sqft(d.tapeSquareFootage ?? d.squareFootage))] : []),
       row('Textura',                lk('textureType', d.textureType)),
+      ...(d.textureType && d.textureType !== 'none'
+        ? [row('Área de textura', sqft(d.textureSquareFootage ?? d.squareFootage))]
+        : []),
     ];
     case 'drywall_repair': return [
       row('Tamaño de la reparación', lk('repairSize', d.repairSize)),
@@ -107,11 +108,20 @@ const _I = { hw: 5.0, bld: 4.5, pm: 4.5, ceil: 1.5, trim: 2.5, door: 175 };
 const _IMX = { vacant: 1.0, occupied: 1.1, '8ft': 1.0, '9ft': 1.05, '10ft_plus': 1.15, rush: 1.1 };
 const _E = { hw: 4.0, bld: 3.5, pm: 3.5, hardie: 4.0, stucco: 4.5, brick: 5.0, deck: 7.0, fence: 4.0 };
 const _EMX = { normal: 1.0, two_stories: 1.1, scraping: 1.15, colorChange: 1.1, recaulk: 1.1 };
-const _C = { hw_std: 175, hw_prem: 225, bld_std: 150, bld_prem: 200, drawer: 85, panel: 250, island: 1500, vanity: 1200 };
-const _CMX = { light: 1.0, dark: 1.1, stain: 1.15, none: 1.0, moderate: 1.1, heavy: 1.2, rush: 1.1 };
+const _C = {
+  standard: { low: 125, typical: 150, premium: 175 },
+  premium: { low: 175, typical: 212.5, premium: 250 },
+  drawer: { low: 60, typical: 125, premium: 190 },
+  panel: { low: 150, typical: 275, premium: 400 },
+  island: { low: 500, typical: 1500, premium: 2500 },
+  color_change: { low: 5500, typical: 11750, premium: 18000 },
+};
 const _DW = { hang: 16, tape: 1.0, orange_peel: 0.85, knockdown: 1.25, hand_trowel: 1.75, smooth_finish: 3.0 };
 const _REP = { small: 350, medium: 950, large: 2500 };
-const _T = { tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500 };
+const _T = {
+  tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500,
+  lvp: { low: 2, high: 4 }, engineered_wood: { low: 3.5, high: 7 },
+};
 const _S = { interior: 7.0, exterior: 8.0, sill: 150, door: 650 };
 const _MIN = {
   interior_painting: 3000, exterior_painting: 3500, cabinet_refinishing: 2500,
@@ -160,22 +170,30 @@ function calcExterior(ct, d) {
 }
 
 function calcCabinet(ct, d) {
-  const pref = ct === 'homeowner' ? 'hw' : 'bld';
-  const doorRate = d.finishLevel === 'premium' ? _C[`${pref}_prem`] : _C[`${pref}_std`];
-  let base = n(d.cabinetDoors) * doorRate + n(d.drawerFronts) * _C.drawer + n(d.endPanels) * _C.panel;
-  if (b(d.includeIsland)) base += _C.island;
-  if (b(d.includeVanity)) base += _C.vanity;
-  let mx = (_CMX[d.colorComplexity] ?? 1) * (_CMX[d.damage] ?? 1);
-  if (b(d.rushProject)) mx *= _CMX.rush;
-  base *= mx;
-  return toRange(base, 'cabinet_refinishing', 'cabinet');
+  if (d.finishLevel === 'color_change') return { ..._C.color_change, inspectionRecommended: true };
+  const doorRate = d.finishLevel === 'premium' ? _C.premium : _C.standard;
+  const quantities = [
+    [n(d.cabinetDoors), doorRate],
+    [n(d.drawerFronts), _C.drawer],
+    [n(d.endPanels), _C.panel],
+    [b(d.includeIsland) ? 1 : 0, _C.island],
+  ];
+  const range = quantities.reduce((result, [qty, rate]) => ({
+    low: result.low + qty * rate.low,
+    typical: result.typical + qty * rate.typical,
+    premium: result.premium + qty * rate.premium,
+    inspectionRecommended: false,
+  }), { low: 0, typical: 0, premium: 0, inspectionRecommended: false });
+  return { ...range, low: Math.round(range.low), typical: Math.round(range.typical), premium: Math.round(range.premium) };
 }
 
 function calcDrywall(d) {
   let base = 0;
   if (b(d.hangDrywall)) base += n(d.sheets) * _DW.hang;
-  if (b(d.tapeAndFloat)) base += n(d.squareFootage) * _DW.tape;
-  if (d.textureType && d.textureType !== 'none') base += n(d.squareFootage) * (_DW[d.textureType] ?? 0);
+  if (b(d.tapeAndFloat)) base += n(d.tapeSquareFootage ?? d.squareFootage) * _DW.tape;
+  if (d.textureType && d.textureType !== 'none') {
+    base += n(d.textureSquareFootage ?? d.squareFootage) * (_DW[d.textureType] ?? 0);
+  }
   return toRange(base, 'drywall');
 }
 
@@ -185,6 +203,16 @@ function calcRepair(d) {
 
 function calcTile(d) {
   if (d.tileService === 'full_shower_remodel') return toRange(_T.full_shower_remodel, 'tile');
+  const rateRange = _T[d.tileService];
+  if (rateRange && typeof rateRange === 'object') {
+    const sqft = n(d.squareFootage);
+    return {
+      low: Math.round(sqft * rateRange.low),
+      typical: Math.round(sqft * ((rateRange.low + rateRange.high) / 2)),
+      premium: Math.round(sqft * rateRange.high),
+      inspectionRecommended: false,
+    };
+  }
   return toRange(n(d.squareFootage) * (_T[d.tileService] ?? 12), 'tile');
 }
 
