@@ -14,6 +14,14 @@ export default function EstimatePage() {
   ];
   const initialService = VALID_SERVICES.includes(rawService) ? rawService : undefined;
 
+  const rawQty = parseFloat(searchParams.get("qty"));
+  const qty = !isNaN(rawQty) && rawQty > 0 && rawQty <= 25000 ? rawQty : undefined;
+  const initialDetails = initialService && qty
+    ? (initialService === "cabinet_refinishing"
+        ? { cabinetDoors: Math.round(qty) }
+        : { squareFootage: qty })
+    : undefined;
+
   return (
     <>
       <SEO
@@ -39,7 +47,7 @@ export default function EstimatePage() {
           </Reveal>
         </div>
 
-        <EstimatorWizard initialService={initialService} />
+        <EstimatorWizard initialService={initialService} initialDetails={initialDetails} />
       </main>
     </>
   );

@@ -276,10 +276,18 @@ address a:hover {
 .hero-content {
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 64px;
+  align-items: center;
   width: min(1200px, calc(100% - 40px));
   margin: 0 auto;
   padding: 180px 0 100px;
   color: #fbf9f5;
+}
+
+.hero-main {
+  min-width: 0;
 }
 
 .eyebrow {
@@ -449,6 +457,144 @@ h3 {
 .shop-section .button.secondary:hover {
   border-color: var(--ink);
   background: rgba(26, 26, 28, 0.04);
+}
+
+/* ── Hero mini estimator card ─────────────────────────────── */
+
+.hero-calc {
+  width: 100%;
+  max-width: 420px;
+  justify-self: end;
+  padding: 38px 34px 30px;
+  border: 1px solid rgba(251, 249, 245, 0.22);
+  border-radius: 4px;
+  background: rgba(20, 18, 14, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.hero-calc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  color: var(--platinum);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.hero-calc-title {
+  margin: 0 0 26px;
+  color: #fbf9f5;
+  font-size: 1.65rem;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+
+.hero-calc-field {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.hero-calc-field > span {
+  display: block;
+  margin-bottom: 9px;
+  color: rgba(251, 249, 245, 0.75);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.hero-calc select,
+.hero-calc input {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid rgba(251, 249, 245, 0.28);
+  border-radius: var(--radius);
+  background: rgba(20, 18, 14, 0.5);
+  color: #fbf9f5;
+  font: inherit;
+  font-size: 0.96rem;
+  transition: border-color 0.2s ease;
+}
+
+.hero-calc select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 42px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%23d8d8de' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  cursor: pointer;
+}
+
+.hero-calc select:focus,
+.hero-calc input:focus {
+  outline: none;
+  border-color: rgba(251, 249, 245, 0.65);
+}
+
+.hero-calc select option {
+  background: #1a1a1c;
+  color: #fbf9f5;
+}
+
+.hero-calc-input-wrap {
+  position: relative;
+}
+
+.hero-calc-input-wrap input {
+  padding-right: 64px;
+}
+
+.hero-calc-unit {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(251, 249, 245, 0.55);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+.hero-calc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  margin-top: 10px;
+  border: none;
+  border-radius: var(--radius);
+  background: #fbf9f5;
+  color: #1a1a1c;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hero-calc-btn:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.hero-calc-hint {
+  margin: 16px 0 0;
+  color: rgba(251, 249, 245, 0.55);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-align: center;
 }
 
 .trust-row {
@@ -2224,6 +2370,11 @@ h3 {
 
 /* === TABLET (≤1024px) === */
 @media (max-width: 1024px) {
+  .hero-content {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 40px;
+  }
+
   .section { padding: 110px 0; }
 
   .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2308,6 +2459,16 @@ h3 {
 
 /* === SMALL TABLET (≤980px) === */
 @media (max-width: 980px) {
+  .hero-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 44px;
+  }
+
+  .hero-calc {
+    justify-self: stretch;
+    max-width: 480px;
+  }
+
   .site-header {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
@@ -2456,6 +2617,15 @@ h3 {
     padding: 14px 20px;
     font-size: 0.72rem;
     letter-spacing: 0.18em;
+  }
+
+  .hero-calc {
+    max-width: 100%;
+    padding: 24px 20px 20px;
+  }
+
+  .hero-calc-title {
+    font-size: 1.2rem;
   }
 
   .trust-row {

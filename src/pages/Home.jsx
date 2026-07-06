@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   Calculator,
@@ -21,6 +21,78 @@ import {
 import { MotionSection, Reveal, SplitHeading, ease, fadeUp, stagger } from "../components/motion";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import SEO from "../components/SEO";
+
+const MINI_SERVICES = [
+  { value: "cabinet_refinishing", label: "Cabinet Refinishing", field: "Cabinet doors", unit: "doors", placeholder: "e.g. 24" },
+  { value: "interior_painting", label: "Interior Painting", field: "Area to paint", unit: "sq ft", placeholder: "e.g. 2,000" },
+  { value: "exterior_painting", label: "Exterior Painting", field: "Exterior area", unit: "sq ft", placeholder: "e.g. 2,500" },
+  { value: "drywall", label: "Drywall", field: "Project area", unit: "sq ft", placeholder: "e.g. 800" },
+  { value: "drywall_repair", label: "Drywall Repair", field: null },
+  { value: "tile", label: "Tile & Flooring", field: "Area", unit: "sq ft", placeholder: "e.g. 120" },
+  { value: "stain_clear", label: "Stain & Clear", field: "Surface area", unit: "sq ft", placeholder: "e.g. 200" },
+];
+
+function HeroEstimatorCard({ reduceMotion }) {
+  const navigate = useNavigate();
+  const [service, setService] = useState("cabinet_refinishing");
+  const [qty, setQty] = useState("");
+  const svc = MINI_SERVICES.find((s) => s.value === service);
+  const parsed = parseFloat(qty);
+  const hasQty = !isNaN(parsed) && parsed > 0;
+
+  const submit = (e) => {
+    e.preventDefault();
+    navigate(`/estimate?service=${service}${svc.field && hasQty ? `&qty=${parsed}` : ""}`);
+  };
+
+  return (
+    <motion.form
+      className="hero-calc"
+      onSubmit={submit}
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease, delay: 1.2 }}
+    >
+      <p className="hero-calc-eyebrow">
+        <Calculator aria-hidden="true" size={14} />
+        Instant Estimate
+      </p>
+      <h2 className="hero-calc-title">Calculate your price here.</h2>
+
+      <label className="hero-calc-field">
+        <span>Service</span>
+        <select value={service} onChange={(e) => { setService(e.target.value); setQty(""); }}>
+          {MINI_SERVICES.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+      </label>
+
+      {svc.field && (
+        <label className="hero-calc-field">
+          <span>{svc.field}</span>
+          <div className="hero-calc-input-wrap">
+            <input
+              type="number"
+              min="0"
+              inputMode="decimal"
+              placeholder={svc.placeholder}
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+            />
+            <span className="hero-calc-unit">{svc.unit}</span>
+          </div>
+        </label>
+      )}
+
+      <button type="submit" className="hero-calc-btn">
+        Calculate My Price
+        <ArrowUpRight aria-hidden="true" size={15} />
+      </button>
+      <p className="hero-calc-hint">Free · Takes ~2 minutes · No commitment</p>
+    </motion.form>
+  );
+}
 
 function Hero() {
   const reduceMotion = useReducedMotion();
@@ -48,6 +120,7 @@ function Hero() {
       <div className="hero-grain" aria-hidden="true" />
 
       <div className="hero-content">
+        <div className="hero-main">
         <motion.p
           className="eyebrow"
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
@@ -117,6 +190,9 @@ function Hero() {
             Highland Lakes
           </motion.span>
         </motion.div>
+        </div>
+
+        <HeroEstimatorCard reduceMotion={reduceMotion} />
       </div>
     </section>
   );

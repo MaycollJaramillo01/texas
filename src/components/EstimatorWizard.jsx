@@ -480,11 +480,12 @@ async function sendEstimateLeadEmail({ customerType, service, details, lead, est
 
 // ─── Main wizard ──────────────────────────────────────────────────────────────
 
-export default function EstimatorWizard({ initialService }) {
+export default function EstimatorWizard({ initialService, initialDetails }) {
   const [step, setStep] = useState(1);
-  const [customerType, setCustomerType] = useState(null);
+  // Skipping step 1 via a quick-start link needs a working default — the API rejects a null customerType.
+  const [customerType, setCustomerType] = useState(initialService ? "homeowner" : null);
   const [service, setService] = useState(initialService ?? null);
-  const [details, setDetails] = useState({});
+  const [details, setDetails] = useState(initialDetails ?? {});
   const [detailsValid, setDetailsValid] = useState(false);
   const [lead, setLead] = useState(EMPTY_LEAD);
   const [leadTouched, setLeadTouched] = useState({ name: false, email: false, phone: false, city: false });
@@ -493,9 +494,10 @@ export default function EstimatorWizard({ initialService }) {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
 
-  // Jump to step 2 if an initial service was provided (from home page quick-select)
+  // Jump ahead if the home page provided a service (quick-select) or service + details (hero mini calculator)
   useEffect(() => {
-    if (initialService) setStep(2);
+    if (initialService) setStep(initialDetails ? 3 : 2);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialService]);
 
   const handleDetailsChange = useCallback((data, valid) => {
