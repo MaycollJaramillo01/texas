@@ -1949,25 +1949,25 @@ h3 {
 /* WhatsApp Floating Action Button */
 .whatsapp-fab {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 25;
-  display: inline-flex;
+  bottom: 100px; /* Arriba del GHL widget */
+  right: 20px;
+  z-index: 2147483647;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  width: 60px;
   height: 60px;
-  padding: 0 22px 0 18px;
+  padding: 0;
   background: #25d366;
   color: #ffffff;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  border-radius: 50%;
   text-decoration: none;
-  box-shadow: 0 18px 40px rgba(37, 211, 102, 0.38), 0 4px 14px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), 0 10px 24px rgba(37, 211, 102, 0.25);
   transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1), box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.whatsapp-fab span {
+  display: none;
 }
 
 .whatsapp-fab::before {
@@ -1992,9 +1992,10 @@ h3 {
 
 @media (max-width: 680px) {
   .whatsapp-fab {
+    width: 54px;
     height: 54px;
-    padding: 0 18px 0 14px;
-    font-size: 0.7rem;
+    bottom: 90px;
+    right: 16px;
   }
 }
 
@@ -2865,10 +2866,9 @@ h3 {
 
   /* === WhatsApp FAB === */
   .whatsapp-fab {
-    height: 52px;
-    padding: 0 18px 0 16px;
-    font-size: 0.7rem;
-    bottom: 16px;
+    width: 54px;
+    height: 54px;
+    bottom: 90px;
     right: 16px;
   }
 
@@ -2896,11 +2896,11 @@ h3 {
 
   .hero-content { padding: 120px 0 48px; }
 
-  .whatsapp-fab span { display: none; }
   .whatsapp-fab {
     width: 52px;
-    padding: 0;
-    border-radius: 50%;
+    height: 52px;
+    bottom: 86px;
+    right: 12px;
   }
 }
 

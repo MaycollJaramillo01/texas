@@ -116,6 +116,27 @@ function Footer() {
   );
 }
 
+function GHLChatWidget() {
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://widgets.leadconnectorhq.com/loader.js";
+    script.setAttribute("data-resources-url", "https://widgets.leadconnectorhq.com/chat-widget/loader.js");
+    // TODO: Reemplaza "yDCxF21GLfVMLBtlB1Cl" con el Location ID real de la subcuenta de GHL
+    script.setAttribute("data-widget-id", "yDCxF21GLfVMLBtlB1Cl"); 
+    script.setAttribute("data-primary-color", "#1a1a1c");
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  return <chat-widget location-id="yDCxF21GLfVMLBtlB1Cl"></chat-widget>;
+}
+
 export default function Layout() {
   const location = useLocation();
 
@@ -143,6 +164,7 @@ export default function Layout() {
         <WhatsAppIcon size={24} aria-hidden="true" />
         <span>WhatsApp</span>
       </a>
+      <GHLChatWidget />
     </>
   );
 }
