@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateEstimate } from '@/lib/server/estimate-engine';
+import { syncLeadToGHL } from '@/lib/server/ghl';
 import { EstimateRequestSchema, validateProjectDetails } from '@/lib/validators/estimate.schema';
 import type { EstimateResponse } from '@/types/estimate';
 
@@ -46,8 +47,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<EstimateRespo
 
     const estimate = calculateEstimate(customerType, service, validatedDetails);
 
-    // TODO: persist lead to CRM / send notification email
     console.info('[THR-LEAD]', JSON.stringify({ lead, service, customerType, timestamp: new Date().toISOString() }));
+
+    try {
+      await syncLeadToGHL({ lead, customerType, service, projectDetails: validatedDetails, estimate });
+    } catch (err) {
+      // The visitor still gets their estimate even if the CRM is down; the
+      // [THR-LEAD] log line above is the fallback record for manual recovery.
+      console.error('[THR-GHL-SYNC-ERROR]', err);
+    }
 
     return NextResponse.json({
       success: true,
