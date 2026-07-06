@@ -84,6 +84,80 @@ function summarizeProjectDetails(details: Record<string, unknown>): string {
     .join('\n');
 }
 
+export interface ContactFormInput {
+  name: string;
+  email: string;
+  phone?: string;
+  service: string;
+  message: string;
+}
+
+/**
+ * Pushes a contact-form inquiry into GoHighLevel: upserts the contact with
+ * the message stored in the "Message" custom field and opens an unvalued
+ * opportunity in the configured pipeline stage. Throws on failure.
+ */
+export async function syncContactFormLead(input: ContactFormInput): Promise<void> {
+  const config = getConfig();
+  if (!config) {
+    console.warn('[THR-GHL] GHL_API_KEY / GHL_LOCATION_ID not set; skipping CRM sync.');
+    return;
+  }
+
+  const name = input.name.trim();
+  const [firstName, ...rest] = name.split(/\s+/);
+  const lastName = rest.join(' ');
+
+  let fieldIds: Record<string, string> = {};
+  try {
+    fieldIds = await getCustomFieldIds(config.apiKey, config.locationId);
+  } catch (err) {
+    console.warn('[THR-GHL] Could not load custom field ids; syncing contact without them.', err);
+  }
+
+  const fieldValues: Array<[string, string]> = [
+    ['contact.message', input.message],
+    ['contact.service_requested', input.service],
+  ];
+  const customFields = fieldValues
+    .filter(([key]) => fieldIds[key])
+    .map(([key, value]) => ({ id: fieldIds[key], field_value: value }));
+
+  const upsert = await ghlFetch<{ contact?: { id: string } }>(config.apiKey, '/contacts/upsert', {
+    method: 'POST',
+    body: JSON.stringify({
+      locationId: config.locationId,
+      firstName,
+      lastName,
+      name,
+      email: input.email,
+      ...(input.phone ? { phone: input.phone } : {}),
+      source: 'Website Contact Form',
+      tags: ['contact-form'],
+      customFields,
+    }),
+  });
+
+  const contactId = upsert.contact?.id;
+  if (!contactId) throw new Error('GHL upsert returned no contact id.');
+
+  if (config.pipelineId && config.stageId) {
+    await ghlFetch(config.apiKey, '/opportunities/', {
+      method: 'POST',
+      body: JSON.stringify({
+        locationId: config.locationId,
+        pipelineId: config.pipelineId,
+        pipelineStageId: config.stageId,
+        contactId,
+        name: `Website Inquiry — ${name}`,
+        status: 'open',
+      }),
+    });
+  } else {
+    console.warn('[THR-GHL] GHL_PIPELINE_ID / GHL_PIPELINE_STAGE_ID not set; contact synced without opportunity.');
+  }
+}
+
 /**
  * Pushes an estimator lead into GoHighLevel: upserts the contact (deduped by
  * email/phone), fills the estimator custom fields, and opens an opportunity

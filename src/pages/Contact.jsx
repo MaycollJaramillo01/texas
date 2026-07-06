@@ -19,6 +19,8 @@ import SEO from "../components/SEO";
 
 const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "5c98dc47-4b42-4c1f-a7b6-a1c93cfd7fea";
 const TEST_CC_EMAIL = import.meta.env.VITE_TEST_CC_EMAIL || "";
+// Base URL of the estimator app, which hosts the GHL CRM endpoint (/api/contact).
+const ESTIMATOR_API_URL = (import.meta.env.VITE_ESTIMATOR_API_URL || "").replace(/\/$/, "");
 
 function ContactForm() {
   const [form, setForm] = useState({
@@ -42,47 +44,65 @@ function ContactForm() {
     setStatus("submitting");
     setErrorMsg("");
 
-    try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          ...(TEST_CC_EMAIL ? { ccemail: TEST_CC_EMAIL } : {}),
-          subject: `New estimate request — ${form.service}`,
-          from_name: `${form.name} · texashighrefinished.com`,
-          replyto: form.email,
-          name: form.name,
-          email: form.email,
-          phone: form.phone || "(not provided)",
-          service: form.service,
-          message: form.message,
-          botcheck: form.botcheck,
-        }),
+    // The lead goes to two places in parallel: the CRM (GoHighLevel, via the
+    // estimator backend) and Web3Forms (email notification). Either one
+    // succeeding counts as a successful submission.
+    const crmPromise = ESTIMATOR_API_URL
+      ? fetch(`${ESTIMATOR_API_URL}/api/contact`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            service: form.service,
+            message: form.message,
+            botcheck: form.botcheck,
+          }),
+        })
+          .then((r) => r.json())
+          .then((r) => Boolean(r.success))
+          .catch(() => false)
+      : Promise.resolve(false);
+
+    const emailPromise = fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_ACCESS_KEY,
+        ...(TEST_CC_EMAIL ? { ccemail: TEST_CC_EMAIL } : {}),
+        subject: `New estimate request — ${form.service}`,
+        from_name: `${form.name} · texashighrefinished.com`,
+        replyto: form.email,
+        name: form.name,
+        email: form.email,
+        phone: form.phone || "(not provided)",
+        service: form.service,
+        message: form.message,
+        botcheck: form.botcheck,
+      }),
+    })
+      .then((r) => r.json())
+      .catch(() => ({ success: false, message: "Network error. Please check your connection and try again." }));
+
+    const [crmOk, emailResult] = await Promise.all([crmPromise, emailPromise]);
+
+    if (crmOk || emailResult.success) {
+      setStatus("success");
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        service: "Kitchen Remodeling",
+        message: "",
+        botcheck: "",
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setStatus("success");
-        setForm({
-          name: "",
-          email: "",
-          phone: "",
-          service: "Kitchen Remodeling",
-          message: "",
-          botcheck: "",
-        });
-      } else {
-        setStatus("error");
-        setErrorMsg(result.error || result.message || "Something went wrong. Please try again.");
-      }
-    } catch (err) {
+    } else {
       setStatus("error");
-      setErrorMsg("Network error. Please check your connection and try again.");
+      setErrorMsg(emailResult.error || emailResult.message || "Something went wrong. Please try again.");
     }
   }
 
