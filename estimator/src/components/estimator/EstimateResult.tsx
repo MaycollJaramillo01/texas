@@ -1,14 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Button from '@/components/ui/Button';
-import type { EstimateRange, ServiceType } from '@/types/estimate';
-
-// Replace this with the real THR scheduling link when available
-const SCHEDULE_URL = 'https://texashighrefinished.com/contact';
+import type { EstimateRange, ServiceType, WizardData } from '@/types/estimate';
 
 interface Props {
   estimate: EstimateRange;
   service: ServiceType;
+  lead: WizardData['lead'];
   message?: string;
   onStartOver: () => void;
 }
@@ -27,7 +26,77 @@ function fmt(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 }
 
-export default function EstimateResult({ estimate, service, message, onStartOver }: Props) {
+function fmtDay(date: string, timezone: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: timezone,
+  }).format(new Date(`${date}T12:00:00`));
+}
+
+function fmtTime(iso: string, timezone: string) {
+  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: timezone }).format(
+    new Date(iso)
+  );
+}
+
+type BookingState = 'idle' | 'loading' | 'choosing' | 'submitting' | 'booked' | 'error';
+
+export default function EstimateResult({ estimate, service, lead, message, onStartOver }: Props) {
+  const [booking, setBooking] = useState<BookingState>('idle');
+  const [slots, setSlots] = useState<Record<string, string[]>>({});
+  const [timezone, setTimezone] = useState('America/Chicago');
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
+  async function loadSlots() {
+    setBooking('loading');
+    setBookingError(null);
+    try {
+      const res = await fetch('/api/appointments');
+      const json = await res.json();
+      if (!json.success || Object.keys(json.slots ?? {}).length === 0) {
+        setBookingError(json.error ?? 'No times available right now. Please call us to schedule.');
+        setBooking('error');
+        return;
+      }
+      setSlots(json.slots);
+      setTimezone(json.timezone ?? 'America/Chicago');
+      setSelectedDay(Object.keys(json.slots)[0]);
+      setBooking('choosing');
+    } catch {
+      setBookingError('Could not load available times. Please call us to schedule.');
+      setBooking('error');
+    }
+  }
+
+  async function confirmBooking() {
+    if (!selectedSlot) return;
+    setBooking('submitting');
+    setBookingError(null);
+    try {
+      const res = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: lead.name, email: lead.email, phone: lead.phone, startTime: selectedSlot }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        setBookingError(json.error ?? 'Something went wrong. Please try again.');
+        setBooking('choosing');
+        return;
+      }
+      setBooking('booked');
+    } catch {
+      setBookingError('Network error. Please try again.');
+      setBooking('choosing');
+    }
+  }
+
+  const days = Object.keys(slots);
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -79,23 +148,96 @@ export default function EstimateResult({ estimate, service, message, onStartOver
         </p>
       </div>
 
-      {/* CTAs */}
-      <div className="flex flex-col gap-3">
-        <a
-          href={SCHEDULE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#8B2635] px-6 py-4 text-base font-bold text-white shadow-md transition-all duration-150 hover:bg-[#7a2030] hover:shadow-lg"
-        >
-          Schedule Verification Visit
-          <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none">
-            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-        <Button variant="ghost" size="md" onClick={onStartOver} className="w-full">
-          Start a new estimate
-        </Button>
-      </div>
+      {/* Scheduling */}
+      {booking === 'booked' ? (
+        <div className="rounded-xl border border-green-200 bg-green-50 p-5 text-center" role="status">
+          <p className="text-base font-bold text-green-800">Visit scheduled ✓</p>
+          <p className="mt-1 text-sm text-green-700">
+            {selectedDay && selectedSlot && (
+              <>
+                {fmtDay(selectedDay, timezone)} at {fmtTime(selectedSlot, timezone)} (Central Time)
+              </>
+            )}
+          </p>
+          <p className="mt-2 text-xs text-green-700">
+            You&apos;ll receive a confirmation shortly. We look forward to seeing your project!
+          </p>
+        </div>
+      ) : booking === 'choosing' || booking === 'submitting' ? (
+        <div className="flex flex-col gap-4 rounded-xl border border-slate-200 p-4">
+          <p className="text-sm font-semibold text-slate-900">Pick a day and time for your free verification visit</p>
+          <div className="flex flex-wrap gap-2">
+            {days.map((day) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  setSelectedDay(day);
+                  setSelectedSlot(null);
+                }}
+                className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                  selectedDay === day
+                    ? 'border-[#8B2635] bg-red-50 text-[#8B2635]'
+                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                }`}
+              >
+                {fmtDay(day, timezone)}
+              </button>
+            ))}
+          </div>
+          {selectedDay && (
+            <div className="flex flex-wrap gap-2">
+              {(slots[selectedDay] ?? []).map((slot) => (
+                <button
+                  key={slot}
+                  type="button"
+                  onClick={() => setSelectedSlot(slot)}
+                  className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                    selectedSlot === slot
+                      ? 'border-[#8B2635] bg-[#8B2635] text-white'
+                      : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  {fmtTime(slot, timezone)}
+                </button>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-slate-400">All times shown in Central Time (Texas).</p>
+          {bookingError && <p className="text-sm text-red-600">{bookingError}</p>}
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={confirmBooking}
+            disabled={!selectedSlot}
+            loading={booking === 'submitting'}
+            className="w-full"
+          >
+            Confirm Visit
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={loadSlots}
+            disabled={booking === 'loading'}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#8B2635] px-6 py-4 text-base font-bold text-white shadow-md transition-all duration-150 hover:bg-[#7a2030] hover:shadow-lg disabled:opacity-70"
+          >
+            {booking === 'loading' ? 'Loading available times…' : 'Schedule Verification Visit'}
+            <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          {booking === 'error' && bookingError && (
+            <p className="text-center text-sm text-red-600">{bookingError}</p>
+          )}
+        </div>
+      )}
+
+      <Button variant="ghost" size="md" onClick={onStartOver} className="w-full">
+        Start a new estimate
+      </Button>
 
       {/* Contact */}
       <div className="border-t border-slate-200 pt-4 text-center">

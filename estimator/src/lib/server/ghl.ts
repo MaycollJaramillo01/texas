@@ -78,10 +78,115 @@ async function getCustomFieldIds(apiKey: string, locationId: string): Promise<Re
   return ids;
 }
 
+/**
+ * Adds tags without clobbering existing ones — the upsert endpoint replaces
+ * the whole tags array, so tags must never be sent through it.
+ */
+async function addTags(apiKey: string, contactId: string, tags: string[]): Promise<void> {
+  await ghlFetch(apiKey, `/contacts/${contactId}/tags`, {
+    method: 'POST',
+    body: JSON.stringify({ tags }),
+  });
+}
+
 function summarizeProjectDetails(details: Record<string, unknown>): string {
   return Object.entries(details)
     .map(([key, value]) => `${key}: ${String(value)}`)
     .join('\n');
+}
+
+const BOOKING_TIMEZONE = 'America/Chicago';
+
+export interface BookVisitInput {
+  name: string;
+  email: string;
+  phone: string;
+  startTime: string; // ISO 8601 with offset, as returned by getFreeSlots
+}
+
+/** Free slots for the verification-visit calendar, keyed by YYYY-MM-DD. */
+export async function getFreeSlots(days = 14): Promise<{ timezone: string; slots: Record<string, string[]> }> {
+  const config = getConfig();
+  const calendarId = process.env.GHL_CALENDAR_ID;
+  if (!config || !calendarId) throw new Error('GHL calendar not configured (GHL_CALENDAR_ID).');
+
+  const start = Date.now();
+  const end = start + days * 24 * 60 * 60 * 1000;
+  const data = await ghlFetch<Record<string, { slots?: string[] }>>(
+    config.apiKey,
+    `/calendars/${calendarId}/free-slots?startDate=${start}&endDate=${end}&timezone=${encodeURIComponent(BOOKING_TIMEZONE)}`
+  );
+
+  const slots: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && Array.isArray(value?.slots) && value.slots.length > 0) {
+      slots[key] = value.slots;
+    }
+  }
+  return { timezone: BOOKING_TIMEZONE, slots };
+}
+
+/**
+ * Books a verification visit: upserts the contact, creates the appointment on
+ * the configured calendar, and moves the contact's open opportunity to the
+ * site-visit stage (best-effort). Throws if the appointment cannot be created.
+ */
+export async function bookVerificationVisit(input: BookVisitInput): Promise<void> {
+  const config = getConfig();
+  const calendarId = process.env.GHL_CALENDAR_ID;
+  if (!config || !calendarId) throw new Error('GHL calendar not configured (GHL_CALENDAR_ID).');
+
+  const name = input.name.trim();
+  const [firstName, ...rest] = name.split(/\s+/);
+
+  const upsert = await ghlFetch<{ contact?: { id: string } }>(config.apiKey, '/contacts/upsert', {
+    method: 'POST',
+    body: JSON.stringify({
+      locationId: config.locationId,
+      firstName,
+      lastName: rest.join(' '),
+      name,
+      email: input.email,
+      phone: input.phone,
+    }),
+  });
+  const contactId = upsert.contact?.id;
+  if (!contactId) throw new Error('GHL upsert returned no contact id.');
+
+  await addTags(config.apiKey, contactId, ['visit-scheduled']);
+
+  await ghlFetch(config.apiKey, '/calendars/events/appointments', {
+    method: 'POST',
+    body: JSON.stringify({
+      calendarId,
+      locationId: config.locationId,
+      contactId,
+      startTime: input.startTime,
+      title: `Verification Visit — ${name}`,
+      appointmentStatus: 'confirmed',
+    }),
+  });
+
+  // Move the contact's open opportunity to the site-visit stage. The visit is
+  // booked either way, so a failure here only logs.
+  const visitStageId = process.env.GHL_VISIT_STAGE_ID;
+  if (visitStageId && config.pipelineId) {
+    try {
+      const search = await ghlFetch<{ opportunities?: Array<{ id: string; status: string }> }>(
+        config.apiKey,
+        `/opportunities/search?location_id=${config.locationId}&contact_id=${contactId}`
+      );
+      const open = (search.opportunities ?? []).find((o) => o.status === 'open');
+      if (open) {
+        await ghlFetch(config.apiKey, `/opportunities/${open.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ pipelineId: config.pipelineId, pipelineStageId: visitStageId }),
+        });
+      }
+    } catch (err) {
+      console.warn('[THR-GHL] Appointment booked but could not move opportunity stage.', err);
+    }
+  }
 }
 
 export interface ContactFormInput {
@@ -133,13 +238,14 @@ export async function syncContactFormLead(input: ContactFormInput): Promise<void
       email: input.email,
       ...(input.phone ? { phone: input.phone } : {}),
       source: 'Website Contact Form',
-      tags: ['contact-form'],
       customFields,
     }),
   });
 
   const contactId = upsert.contact?.id;
   if (!contactId) throw new Error('GHL upsert returned no contact id.');
+
+  await addTags(config.apiKey, contactId, ['contact-form']);
 
   if (config.pipelineId && config.stageId) {
     await ghlFetch(config.apiKey, '/opportunities/', {
@@ -206,13 +312,14 @@ export async function syncLeadToGHL(input: SyncLeadInput): Promise<void> {
       phone: lead.phone,
       city: lead.city,
       source: 'Website Estimator',
-      tags: ['estimator-lead', service.replace(/_/g, '-')],
       customFields,
     }),
   });
 
   const contactId = upsert.contact?.id;
   if (!contactId) throw new Error('GHL upsert returned no contact id.');
+
+  await addTags(config.apiKey, contactId, ['estimator-lead', service.replace(/_/g, '-')]);
 
   if (config.pipelineId && config.stageId) {
     await ghlFetch(config.apiKey, '/opportunities/', {

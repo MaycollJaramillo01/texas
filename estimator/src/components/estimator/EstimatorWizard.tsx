@@ -155,6 +155,7 @@ export default function EstimatorWizard() {
           <EstimateResult
             estimate={estimate}
             service={data.service}
+            lead={data.lead}
             message={resultMessage}
             onStartOver={startOver}
           />
