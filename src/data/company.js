@@ -1,4 +1,6 @@
 export const SITE_URL = "https://texashighrefinished.com";
+// Standalone estimator app (Next.js) — hosts the GHL-connected wizard and booking.
+export const ESTIMATOR_URL = import.meta.env.VITE_ESTIMATOR_API_URL || "https://thr-estimator.vercel.app";
 
 export function assetUrl(path) {
   return encodeURI(`${SITE_URL}/${path}`);

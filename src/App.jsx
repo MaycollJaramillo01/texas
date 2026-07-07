@@ -5,7 +5,7 @@ import ServicesPage from "./pages/Services";
 import GalleryPage from "./pages/Gallery";
 import AboutPage from "./pages/About";
 import ContactPage from "./pages/Contact";
-import EstimatePage from "./pages/Estimate";
+import EstimateRedirectPage from "./pages/EstimateRedirect";
 
 export default function App() {
   return (
@@ -16,7 +16,7 @@ export default function App() {
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/estimate" element={<EstimatePage />} />
+        <Route path="/estimate" element={<EstimateRedirectPage />} />
         <Route path="*" element={<HomePage />} />
       </Route>
     </Routes>
