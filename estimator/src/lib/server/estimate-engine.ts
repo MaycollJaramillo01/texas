@@ -52,28 +52,16 @@ const _EXTERIOR_MX = {
   recaulking: 1.1,
 } as const;
 
-const _CABINET: Record<string, number> = {
-  homeowner_standard: 175,
-  homeowner_premium: 225,
-  builder_standard: 150,
-  builder_premium: 200,
-  property_manager_standard: 150,
-  property_manager_premium: 200,
-  drawer: 85,
-  end_panel: 250,
-  island: 1500,
-  vanity: 1200,
+// Each cabinet line item carries its own low/typical/premium range; the
+// estimate is the straight sum of the selected items (no minimum applied).
+const _CABINET: Record<string, { low: number; typical: number; premium: number }> = {
+  standard: { low: 125, typical: 150, premium: 175 },
+  premium: { low: 175, typical: 212.5, premium: 250 },
+  drawer: { low: 60, typical: 125, premium: 190 },
+  panel: { low: 150, typical: 275, premium: 400 },
+  island: { low: 500, typical: 1500, premium: 2500 },
+  color_change: { low: 5500, typical: 11750, premium: 18000 },
 };
-
-const _CABINET_MX = {
-  light: 1.0,
-  dark: 1.1,
-  stain: 1.15,
-  none: 1.0,
-  moderate: 1.1,
-  heavy: 1.2,
-  rush: 1.1,
-} as const;
 
 const _DRYWALL = {
   hang: 16,
@@ -176,29 +164,37 @@ function exterior(c: CustomerType, d: ExteriorPaintingDetails): EstimateRange {
   return toRange(base, 'exterior_painting');
 }
 
-function cabinet(c: CustomerType, d: CabinetRefinishingDetails): EstimateRange {
-  const key = `${c}_${d.finishLevel}`;
-  const doorRate = _CABINET[key] ?? _CABINET['homeowner_standard'];
-
-  let base =
-    d.cabinetDoors * doorRate +
-    d.drawerFronts * _CABINET.drawer +
-    d.endPanels * _CABINET.end_panel;
-
-  if (d.includeIsland) base += _CABINET.island;
-  if (d.includeVanity) base += _CABINET.vanity;
-
-  let mx = _CABINET_MX[d.colorComplexity] * _CABINET_MX[d.damage];
-  if (d.rushProject) mx *= _CABINET_MX.rush;
-  base *= mx;
-
-  return toRange(base, 'cabinet_refinishing', 'cabinet');
+function cabinet(_c: CustomerType, d: CabinetRefinishingDetails): EstimateRange {
+  if (d.finishLevel === 'color_change') {
+    return { ..._CABINET.color_change, inspectionRecommended: true };
+  }
+  const doorRate = d.finishLevel === 'premium' ? _CABINET.premium : _CABINET.standard;
+  const items: Array<[number, { low: number; typical: number; premium: number }]> = [
+    [d.cabinetDoors, doorRate],
+    [d.drawerFronts, _CABINET.drawer],
+    [d.endPanels, _CABINET.panel],
+    [d.includeIsland ? 1 : 0, _CABINET.island],
+  ];
+  const range = items.reduce(
+    (acc, [qty, rate]) => ({
+      low: acc.low + qty * rate.low,
+      typical: acc.typical + qty * rate.typical,
+      premium: acc.premium + qty * rate.premium,
+    }),
+    { low: 0, typical: 0, premium: 0 }
+  );
+  return {
+    low: Math.round(range.low),
+    typical: Math.round(range.typical),
+    premium: Math.round(range.premium),
+    inspectionRecommended: false,
+  };
 }
 
 function drywall(d: DrywallDetails): EstimateRange {
   let base = 0;
   if (d.hangDrywall && d.sheets > 0) base += d.sheets * _DRYWALL.hang;
-  if (d.tapeAndFloat && d.squareFootage > 0) base += d.squareFootage * _DRYWALL.tape_float;
+  if (d.tapeAndFloat && d.tapeSquareFootage > 0) base += d.tapeSquareFootage * _DRYWALL.tape_float;
 
   const texRates: Record<string, number> = {
     orange_peel: _DRYWALL.orange_peel,
@@ -206,8 +202,8 @@ function drywall(d: DrywallDetails): EstimateRange {
     hand_trowel: _DRYWALL.hand_trowel,
     smooth_finish: _DRYWALL.smooth_finish,
   };
-  if (d.textureType !== 'none' && d.squareFootage > 0) {
-    base += d.squareFootage * (texRates[d.textureType] ?? 0);
+  if (d.textureType !== 'none' && d.textureSquareFootage > 0) {
+    base += d.textureSquareFootage * (texRates[d.textureType] ?? 0);
   }
 
   return toRange(base, 'drywall');

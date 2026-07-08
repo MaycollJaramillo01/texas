@@ -317,15 +317,7 @@ function CabinetForm({ defaults, onChange }: { defaults: Record<string, unknown>
     (defaults.finishLevel as CabinetRefinishingDetails['finishLevel']) ?? 'standard'
   );
   const [island, setIsland] = useState<boolean>((defaults.includeIsland as boolean) ?? false);
-  const [vanity, setVanity] = useState<boolean>((defaults.includeVanity as boolean) ?? false);
   const [panels, setPanels] = useState(num(defaults.endPanels ?? 0));
-  const [color, setColor] = useState<CabinetRefinishingDetails['colorComplexity'] | null>(
-    (defaults.colorComplexity as CabinetRefinishingDetails['colorComplexity']) ?? 'light'
-  );
-  const [damage, setDamage] = useState<CabinetRefinishingDetails['damage'] | null>(
-    (defaults.damage as CabinetRefinishingDetails['damage']) ?? 'none'
-  );
-  const [rush, setRush] = useState<boolean>((defaults.rushProject as boolean) ?? false);
 
   const emit = useCallback(() => {
     const data: Record<string, unknown> = {
@@ -333,98 +325,74 @@ function CabinetForm({ defaults, onChange }: { defaults: Record<string, unknown>
       drawerFronts: Math.round(parseN(drawers)),
       finishLevel: finish,
       includeIsland: island,
-      includeVanity: vanity,
       endPanels: Math.round(parseN(panels)),
-      colorComplexity: color,
-      damage,
-      rushProject: rush,
     };
-    const isValid = parseN(doors) >= 1 && finish !== null && color !== null && damage !== null;
+    const isValid = finish === 'color_change' || (finish !== null && parseN(doors) >= 1);
     onChange(data, isValid);
-  }, [doors, drawers, finish, island, vanity, panels, color, damage, rush, onChange]);
+  }, [doors, drawers, finish, island, panels, onChange]);
 
   useEffect(() => { emit(); }, [emit]);
 
   return (
     <div className="flex flex-col gap-5">
-      <Input
-        label="Number of cabinet doors"
-        type="number"
-        min={1}
-        placeholder="e.g. 24"
-        value={doors}
-        onChange={(e) => setDoors(e.target.value)}
-        required
-      />
-      <Input
-        label="Number of drawer fronts"
-        type="number"
-        min={0}
-        placeholder="0"
-        value={drawers}
-        onChange={(e) => setDrawers(e.target.value)}
-      />
       <Field label="Finish level">
         <SelectButtons
-          options={[{ value: 'standard', label: 'Standard' }, { value: 'premium', label: 'Premium' }]}
+          options={[
+            { value: 'standard', label: 'Builder Grade Finish', description: '$125–$175 per door' },
+            { value: 'premium', label: 'Premium Shop Finish', description: '$175–$250 per door' },
+            { value: 'color_change', label: 'Complete Kitchen Color Change', description: '$5,500–$18,000+' },
+          ]}
           value={finish}
           onChange={setFinish}
-        />
-      </Field>
-      <Field label="Include kitchen island?">
-        <SelectButtons
-          options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }]}
-          value={String(island)}
-          onChange={(v) => setIsland(v === 'true')}
-        />
-      </Field>
-      <Field label="Include bathroom vanity?">
-        <SelectButtons
-          options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }]}
-          value={String(vanity)}
-          onChange={(v) => setVanity(v === 'true')}
-        />
-      </Field>
-      <Input
-        label="Number of end / side panels"
-        type="number"
-        min={0}
-        placeholder="0"
-        value={panels}
-        onChange={(e) => setPanels(e.target.value)}
-        hint="Exposed cabinet sides or filler panels."
-      />
-      <Field label="Color complexity">
-        <SelectButtons
-          options={[
-            { value: 'light', label: 'Light color' },
-            { value: 'dark', label: 'Dark color' },
-            { value: 'stain', label: 'Stain + clear' },
-          ]}
-          value={color}
-          onChange={setColor}
           cols={3}
         />
       </Field>
-      <Field label="Existing damage or repairs needed?">
-        <SelectButtons
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'moderate', label: 'Moderate' },
-            { value: 'heavy', label: 'Heavy' },
-          ]}
-          value={damage}
-          onChange={setDamage}
-          cols={3}
-        />
-      </Field>
-      <Field label="Rush project?">
-        <SelectButtons
-          options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes — rush' }]}
-          value={String(rush)}
-          onChange={(v) => setRush(v === 'true')}
-        />
-      </Field>
+      {finish !== 'color_change' && (
+        <>
+          <Input
+            label="Number of cabinet doors"
+            type="number"
+            min={1}
+            placeholder="e.g. 24"
+            value={doors}
+            onChange={(e) => setDoors(e.target.value)}
+            hint="Count each individual cabinet door."
+            required
+          />
+          <Input
+            label="Number of drawer fronts"
+            type="number"
+            min={0}
+            placeholder="0"
+            value={drawers}
+            onChange={(e) => setDrawers(e.target.value)}
+            hint="$60–$190 each."
+          />
+          <Input
+            label="Number of end / side panels"
+            type="number"
+            min={0}
+            placeholder="0"
+            value={panels}
+            onChange={(e) => setPanels(e.target.value)}
+            hint="Exposed cabinet sides or filler panels. $150–$400 each."
+          />
+          <Field label="Include kitchen island?">
+            <SelectButtons
+              options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes — $500–$2,500' }]}
+              value={String(island)}
+              onChange={(v) => setIsland(v === 'true')}
+            />
+          </Field>
+        </>
+      )}
+      {finish === 'color_change' && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+          <p className="text-xs text-blue-700">
+            Complete kitchen color change is priced as a full package. An on-site inspection confirms the final scope and pricing.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -433,7 +401,8 @@ function CabinetForm({ defaults, onChange }: { defaults: Record<string, unknown>
 
 function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>; onChange: Props['onChange'] }) {
   const [sheets, setSheets] = useState(num(defaults.sheets ?? 0));
-  const [sqft, setSqft] = useState(num(defaults.squareFootage ?? 0));
+  const [tapeSqft, setTapeSqft] = useState(num(defaults.tapeSquareFootage ?? defaults.squareFootage ?? 0));
+  const [textureSqft, setTextureSqft] = useState(num(defaults.textureSquareFootage ?? defaults.squareFootage ?? 0));
   const [hang, setHang] = useState<boolean>((defaults.hangDrywall as boolean) ?? false);
   const [tape, setTape] = useState<boolean>((defaults.tapeAndFloat as boolean) ?? false);
   const [texture, setTexture] = useState<DrywallDetails['textureType'] | null>(
@@ -443,20 +412,29 @@ function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>
   const emit = useCallback(() => {
     const data: Record<string, unknown> = {
       sheets: Math.round(parseN(sheets)),
-      squareFootage: parseN(sqft),
       hangDrywall: hang,
       tapeAndFloat: tape,
+      tapeSquareFootage: parseN(tapeSqft),
       textureType: texture,
+      textureSquareFootage: parseN(textureSqft),
     };
-    const isValid = (parseN(sheets) > 0 || parseN(sqft) > 0) && texture !== null;
+    const isValid =
+      (hang && Math.round(parseN(sheets)) > 0) ||
+      (tape && parseN(tapeSqft) > 0) ||
+      (texture !== null && texture !== 'none' && parseN(textureSqft) > 0);
     onChange(data, isValid);
-  }, [sheets, sqft, hang, tape, texture, onChange]);
+  }, [sheets, tapeSqft, textureSqft, hang, tape, texture, onChange]);
 
   useEffect(() => { emit(); }, [emit]);
 
   return (
     <div className="flex flex-col gap-5">
-      <Field label="Include drywall hang / installation?">
+      <div>
+        <p className="text-sm font-semibold text-slate-900">Choose all drywall services needed</p>
+        <p className="mt-0.5 text-xs text-slate-500">Each service is measured and calculated separately.</p>
+      </div>
+
+      <Field label="1. New drywall installation / hanging">
         <SelectButtons
           options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }]}
           value={String(hang)}
@@ -473,24 +451,28 @@ function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>
           onChange={(e) => setSheets(e.target.value)}
         />
       )}
-      <Field label="Include tape & float?">
+
+      <Field label="2. Tape & float / finishing">
         <SelectButtons
           options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }]}
           value={String(tape)}
           onChange={(v) => setTape(v === 'true')}
         />
       </Field>
-      <Input
-        label="Total area (sq ft)"
-        type="number"
-        min={1}
-        placeholder="e.g. 800"
-        value={sqft}
-        onChange={(e) => setSqft(e.target.value)}
-        unit="sq ft"
-        hint="Used for tape & float and texture calculation."
-      />
-      <Field label="Texture finish">
+      {tape && (
+        <Input
+          label="Tape & float area (sq ft)"
+          type="number"
+          min={1}
+          placeholder="e.g. 800"
+          value={tapeSqft}
+          onChange={(e) => setTapeSqft(e.target.value)}
+          unit="sq ft"
+          hint="Enter only the area receiving tape & float."
+        />
+      )}
+
+      <Field label="3. Texture application">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {([
             { value: 'none', label: 'No texture' },
@@ -509,6 +491,18 @@ function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>
           ))}
         </div>
       </Field>
+      {texture !== null && texture !== 'none' && (
+        <Input
+          label="Texture area (sq ft)"
+          type="number"
+          min={1}
+          placeholder="e.g. 800"
+          value={textureSqft}
+          onChange={(e) => setTextureSqft(e.target.value)}
+          unit="sq ft"
+          hint="Enter only the area receiving the selected texture."
+        />
+      )}
     </div>
   );
 }

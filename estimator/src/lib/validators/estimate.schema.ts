@@ -41,28 +41,26 @@ export const ExteriorPaintingSchema = z.object({
   extensiveRecaulking: z.boolean(),
 });
 
-export const CabinetRefinishingSchema = z.object({
-  cabinetDoors: z
-    .number()
-    .int()
-    .positive('Number of cabinet doors must be at least 1.')
-    .max(500),
-  drawerFronts: z.number().int().min(0).max(500),
-  finishLevel: z.enum(['standard', 'premium']),
-  includeIsland: z.boolean(),
-  includeVanity: z.boolean(),
-  endPanels: z.number().int().min(0).max(100),
-  colorComplexity: z.enum(['light', 'dark', 'stain']),
-  damage: z.enum(['none', 'moderate', 'heavy']),
-  rushProject: z.boolean(),
-});
+export const CabinetRefinishingSchema = z
+  .object({
+    cabinetDoors: z.number().int().min(0).max(500),
+    drawerFronts: z.number().int().min(0).max(500),
+    finishLevel: z.enum(['standard', 'premium', 'color_change']),
+    includeIsland: z.boolean(),
+    endPanels: z.number().int().min(0).max(100),
+  })
+  .refine((d) => d.finishLevel === 'color_change' || d.cabinetDoors >= 1, {
+    message: 'Number of cabinet doors must be at least 1.',
+    path: ['cabinetDoors'],
+  });
 
 export const DrywallSchema = z.object({
   sheets: z.number().int().min(0).max(5000),
-  squareFootage: z.number().min(0).max(100000),
   hangDrywall: z.boolean(),
   tapeAndFloat: z.boolean(),
+  tapeSquareFootage: z.number().min(0).max(100000),
   textureType: z.enum(['none', 'orange_peel', 'knockdown', 'hand_trowel', 'smooth_finish']),
+  textureSquareFootage: z.number().min(0).max(100000),
 });
 
 export const DrywallRepairSchema = z.object({

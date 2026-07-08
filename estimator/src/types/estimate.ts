@@ -38,21 +38,18 @@ export interface ExteriorPaintingDetails {
 export interface CabinetRefinishingDetails {
   cabinetDoors: number;
   drawerFronts: number;
-  finishLevel: 'standard' | 'premium';
+  finishLevel: 'standard' | 'premium' | 'color_change';
   includeIsland: boolean;
-  includeVanity: boolean;
   endPanels: number;
-  colorComplexity: 'light' | 'dark' | 'stain';
-  damage: 'none' | 'moderate' | 'heavy';
-  rushProject: boolean;
 }
 
 export interface DrywallDetails {
   sheets: number;
-  squareFootage: number;
   hangDrywall: boolean;
   tapeAndFloat: boolean;
+  tapeSquareFootage: number;
   textureType: 'none' | 'orange_peel' | 'knockdown' | 'hand_trowel' | 'smooth_finish';
+  textureSquareFootage: number;
 }
 
 export interface DrywallRepairDetails {
