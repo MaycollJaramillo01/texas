@@ -60,7 +60,7 @@ export interface DrywallRepairDetails {
 }
 
 export interface TileDetails {
-  tileService: 'tile_flooring' | 'shower_tile' | 'backsplash' | 'full_shower_remodel';
+  tileService: 'tile_flooring' | 'shower_tile' | 'backsplash' | 'full_shower_remodel' | 'lvp' | 'engineered_wood';
   squareFootage: number;
 }
 

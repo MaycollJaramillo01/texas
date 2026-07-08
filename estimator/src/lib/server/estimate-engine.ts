@@ -93,6 +93,12 @@ const _TILE: Record<string, number> = {
   full_shower_remodel: 6500,
 };
 
+// Flooring priced as a per-sq-ft range instead of a single rate
+const _TILE_RANGE: Record<string, { low: number; high: number }> = {
+  lvp: { low: 2, high: 4 },
+  engineered_wood: { low: 3.5, high: 7 },
+};
+
 const _STAIN = {
   interior: 7.0,
   exterior: 8.0,
@@ -216,6 +222,16 @@ function drywallRepair(d: DrywallRepairDetails): EstimateRange {
 function tile(d: TileDetails): EstimateRange {
   if (d.tileService === 'full_shower_remodel') {
     return toRange(_TILE.full_shower_remodel, 'tile');
+  }
+  const rateRange = _TILE_RANGE[d.tileService];
+  if (rateRange) {
+    const sqft = d.squareFootage ?? 0;
+    return {
+      low: Math.round(sqft * rateRange.low),
+      typical: Math.round(sqft * ((rateRange.low + rateRange.high) / 2)),
+      premium: Math.round(sqft * rateRange.high),
+      inspectionRecommended: false,
+    };
   }
   const rate = _TILE[d.tileService] ?? 12;
   return toRange((d.squareFootage ?? 0) * rate, 'tile');

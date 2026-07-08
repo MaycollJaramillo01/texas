@@ -38,7 +38,7 @@ function SelectButtons<T extends string>({
   onChange,
   cols = 2,
 }: {
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; description?: string }[];
   value: T | null;
   onChange: (v: T) => void;
   cols?: 2 | 3 | 4 | 5;
@@ -51,6 +51,7 @@ function SelectButtons<T extends string>({
           key={o.value}
           value={o.value}
           label={o.label}
+          description={o.description}
           selected={value === o.value}
           onSelect={(v) => onChange(v as T)}
         />
@@ -581,6 +582,8 @@ function TileForm({ defaults, onChange }: { defaults: Record<string, unknown>; o
             { value: 'shower_tile', label: 'Shower Tile' },
             { value: 'backsplash', label: 'Backsplash' },
             { value: 'full_shower_remodel', label: 'Full Shower Remodel' },
+            { value: 'lvp', label: 'Luxury Vinyl Plank (LVP)', description: '$2.00–$4.00 / sq ft' },
+            { value: 'engineered_wood', label: 'Engineered Wood Flooring', description: '$3.50–$7.00 / sq ft' },
           ]}
           value={service}
           onChange={setService}

@@ -70,7 +70,7 @@ export const DrywallRepairSchema = z.object({
 });
 
 export const TileSchema = z.object({
-  tileService: z.enum(['tile_flooring', 'shower_tile', 'backsplash', 'full_shower_remodel']),
+  tileService: z.enum(['tile_flooring', 'shower_tile', 'backsplash', 'full_shower_remodel', 'lvp', 'engineered_wood']),
   squareFootage: z.number().min(0).max(20000),
 });
 
