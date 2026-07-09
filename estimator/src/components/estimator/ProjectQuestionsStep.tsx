@@ -10,6 +10,7 @@ import type {
   CabinetRefinishingDetails,
   DrywallDetails,
   DrywallRepairDetails,
+  LvpFlooringDetails,
   TileDetails,
   StainClearDetails,
 } from '@/types/estimate';
@@ -547,6 +548,39 @@ function DrywallRepairForm({ defaults, onChange }: { defaults: Record<string, un
   );
 }
 
+function LvpFlooringForm({ defaults, onChange }: { defaults: Record<string, unknown>; onChange: Props['onChange'] }) {
+  const [sqft, setSqft] = useState(num(defaults.squareFootage));
+
+  const emit = useCallback(() => {
+    const data: LvpFlooringDetails = {
+      squareFootage: parseN(sqft),
+    };
+    onChange(data as unknown as Record<string, unknown>, data.squareFootage > 0);
+  }, [sqft, onChange]);
+
+  useEffect(() => { emit(); }, [emit]);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <Input
+        label="LVP flooring area"
+        type="number"
+        min={1}
+        placeholder="e.g. 600"
+        value={sqft}
+        onChange={(e) => setSqft(e.target.value)}
+        unit="sq ft"
+        required
+      />
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <p className="text-xs text-amber-700">
+          Subfloor prep, transitions, demo, and material selection may affect the final proposal after the verification visit.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tile ─────────────────────────────────────────────────────────────────────
 
 function TileForm({ defaults, onChange }: { defaults: Record<string, unknown>; onChange: Props['onChange'] }) {
@@ -576,8 +610,6 @@ function TileForm({ defaults, onChange }: { defaults: Record<string, unknown>; o
             { value: 'shower_tile', label: 'Shower Tile' },
             { value: 'backsplash', label: 'Backsplash' },
             { value: 'full_shower_remodel', label: 'Full Shower Remodel' },
-            { value: 'lvp', label: 'Luxury Vinyl Plank (LVP)', description: '$2.00–$4.00 / sq ft' },
-            { value: 'engineered_wood', label: 'Engineered Wood Flooring', description: '$3.50–$7.00 / sq ft' },
           ]}
           value={service}
           onChange={setService}
@@ -682,6 +714,7 @@ const SERVICE_TITLES: Record<ServiceType, string> = {
   cabinet_refinishing: 'Cabinet Refinishing Details',
   drywall: 'Drywall Project Details',
   drywall_repair: 'Drywall Repair Details',
+  lvp_flooring: 'LVP Flooring Details',
   tile: 'Tile Installation Details',
   stain_clear: 'Stain & Clear Details',
 };
@@ -693,6 +726,7 @@ export default function ProjectQuestionsStep({ service, defaultValues, onChange 
     cabinet_refinishing: <CabinetForm defaults={defaultValues} onChange={onChange} />,
     drywall: <DrywallForm defaults={defaultValues} onChange={onChange} />,
     drywall_repair: <DrywallRepairForm defaults={defaultValues} onChange={onChange} />,
+    lvp_flooring: <LvpFlooringForm defaults={defaultValues} onChange={onChange} />,
     tile: <TileForm defaults={defaultValues} onChange={onChange} />,
     stain_clear: <StainClearForm defaults={defaultValues} onChange={onChange} />,
   };

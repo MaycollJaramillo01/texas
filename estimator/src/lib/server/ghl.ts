@@ -10,6 +10,7 @@ const SERVICE_LABELS: Record<ServiceType, string> = {
   cabinet_refinishing: 'Cabinet Refinishing',
   drywall: 'Drywall',
   drywall_repair: 'Drywall Repair',
+  lvp_flooring: 'LVP Flooring',
   tile: 'Tile',
   stain_clear: 'Stain & Clear Coat',
 };
@@ -96,6 +97,30 @@ function summarizeProjectDetails(details: Record<string, unknown>): string {
 }
 
 const BOOKING_TIMEZONE = 'America/Chicago';
+const BOOKING_START_MINUTES = 10 * 60;
+const BOOKING_END_MINUTES = 16 * 60;
+const BOOKING_WEEKDAYS = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+
+function isAllowedVerificationSlot(slotIso: string): boolean {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: BOOKING_TIMEZONE,
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(slotIso));
+  const get = (type: string) => parts.find((part) => part.type === type)?.value;
+  const weekday = get('weekday');
+  const hour = Number(get('hour'));
+  const minute = Number(get('minute'));
+  if (!weekday || !Number.isFinite(hour) || !Number.isFinite(minute)) return false;
+  const localMinutes = hour * 60 + minute;
+  return (
+    BOOKING_WEEKDAYS.has(weekday) &&
+    localMinutes >= BOOKING_START_MINUTES &&
+    localMinutes <= BOOKING_END_MINUTES
+  );
+}
 
 export interface BookVisitInput {
   name: string;
@@ -120,7 +145,8 @@ export async function getFreeSlots(days = 14): Promise<{ timezone: string; slots
   const slots: Record<string, string[]> = {};
   for (const [key, value] of Object.entries(data)) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(key) && Array.isArray(value?.slots) && value.slots.length > 0) {
-      slots[key] = value.slots;
+      const allowedSlots = value.slots.filter(isAllowedVerificationSlot);
+      if (allowedSlots.length > 0) slots[key] = allowedSlots;
     }
   }
   return { timezone: BOOKING_TIMEZONE, slots };
@@ -135,6 +161,9 @@ export async function bookVerificationVisit(input: BookVisitInput): Promise<void
   const config = getConfig();
   const calendarId = process.env.GHL_CALENDAR_ID;
   if (!config || !calendarId) throw new Error('GHL calendar not configured (GHL_CALENDAR_ID).');
+  if (!isAllowedVerificationSlot(input.startTime)) {
+    throw new Error('Verification visits are only available Monday-Friday, 10:00 AM-4:00 PM Texas time.');
+  }
 
   const name = input.name.trim();
   const [firstName, ...rest] = name.split(/\s+/);

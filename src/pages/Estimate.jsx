@@ -10,7 +10,7 @@ export default function EstimatePage() {
 
   const VALID_SERVICES = [
     "interior_painting", "exterior_painting", "cabinet_refinishing",
-    "drywall", "drywall_repair", "tile", "stain_clear",
+    "drywall", "drywall_repair", "lvp_flooring", "tile", "stain_clear",
   ];
   const initialService = VALID_SERVICES.includes(rawService) ? rawService : undefined;
 

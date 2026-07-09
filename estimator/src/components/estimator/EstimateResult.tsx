@@ -18,6 +18,7 @@ const SERVICE_LABELS: Record<ServiceType, string> = {
   cabinet_refinishing: 'Cabinet Refinishing',
   drywall: 'Drywall',
   drywall_repair: 'Drywall Repair',
+  lvp_flooring: 'LVP Flooring',
   tile: 'Tile Installation',
   stain_clear: 'Stain & Clear',
 };
@@ -155,7 +156,7 @@ export default function EstimateResult({ estimate, service, lead, message, onSta
           <p className="mt-1 text-sm text-green-700">
             {selectedDay && selectedSlot && (
               <>
-                {fmtDay(selectedDay, timezone)} at {fmtTime(selectedSlot, timezone)} (Central Time)
+                {fmtDay(selectedDay, timezone)} at {fmtTime(selectedSlot, timezone)} (Texas time)
               </>
             )}
           </p>
@@ -203,7 +204,7 @@ export default function EstimateResult({ estimate, service, lead, message, onSta
               ))}
             </div>
           )}
-          <p className="text-xs text-slate-400">All times shown in Central Time (Texas).</p>
+          <p className="text-xs text-slate-400">All times shown in Texas time.</p>
           {bookingError && <p className="text-sm text-red-600">{bookingError}</p>}
           <Button
             variant="primary"

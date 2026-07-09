@@ -326,6 +326,26 @@ function DrywallRepairForm({ defaults, onChange }) {
   );
 }
 
+function LvpFlooringForm({ defaults, onChange }) {
+  const [sqft, setSqft] = useState(num(defaults.squareFootage));
+
+  const emit = useCallback(() => {
+    const squareFootage = parseN(sqft);
+    onChange({ squareFootage }, squareFootage > 0);
+  }, [sqft, onChange]);
+
+  useEffect(() => { emit(); }, [emit]);
+
+  return (
+    <>
+      <NumberInput label="LVP flooring area" value={sqft} onChange={setSqft} placeholder="e.g. 600" unit="sq ft" required />
+      <p className="form-hint" style={{ padding: "12px", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "var(--radius)" }}>
+        Subfloor prep, transitions, demo, and material selection may affect the final proposal after the verification visit.
+      </p>
+    </>
+  );
+}
+
 function TileForm({ defaults, onChange }) {
   const [svc, setSvc] = useState(defaults.tileService ?? null);
   const [sqft, setSqft] = useState(num(defaults.squareFootage));
@@ -342,9 +362,7 @@ function TileForm({ defaults, onChange }) {
       <Field label="Type of tile or flooring work" required>
         <div className="selection-grid cols-2">
           {[{ value: "tile_flooring", label: "Tile Flooring" }, { value: "shower_tile", label: "Shower Tile" },
-            { value: "backsplash", label: "Backsplash" }, { value: "full_shower_remodel", label: "Full Shower Remodel" },
-            { value: "lvp", label: "Luxury Vinyl Plank (LVP)", description: "$2.00–$4.00 / sq ft" },
-            { value: "engineered_wood", label: "Engineered Wood Flooring", description: "$3.50–$7.00 / sq ft" }]
+            { value: "backsplash", label: "Backsplash" }, { value: "full_shower_remodel", label: "Full Shower Remodel" }]
             .map((o) => <SelectionCard key={o.value} {...o} selected={svc === o.value} onSelect={setSvc} />)}
         </div>
       </Field>
@@ -400,6 +418,7 @@ const SERVICE_OPTIONS = [
   { value: "cabinet_refinishing", label: "Cabinet Refinishing", description: "Kitchen, bathroom, and custom cabinet doors." },
   { value: "drywall", label: "Drywall", description: "New installation, tape & float, and texture finishes." },
   { value: "drywall_repair", label: "Drywall Repair", description: "Patch and repair holes, cracks, or water damage." },
+  { value: "lvp_flooring", label: "LVP Flooring", description: "Luxury vinyl plank flooring installation." },
   { value: "tile", label: "Tile Installation", description: "Floors, showers, backsplash, and full shower remodels." },
   { value: "stain_clear", label: "Stain & Clear", description: "Interior/exterior wood staining and clear coat finishes." },
 ];
@@ -410,6 +429,7 @@ const SERVICE_LABELS = {
   cabinet_refinishing: "Cabinet Refinishing",
   drywall: "Drywall",
   drywall_repair: "Drywall Repair",
+  lvp_flooring: "LVP Flooring",
   tile: "Tile Installation",
   stain_clear: "Stain & Clear",
 };
@@ -615,6 +635,7 @@ export default function EstimatorWizard({ initialService, initialDetails }) {
             {service === "cabinet_refinishing" && <CabinetForm     defaults={details} onChange={handleDetailsChange} />}
             {service === "drywall"             && <DrywallForm     defaults={details} onChange={handleDetailsChange} />}
             {service === "drywall_repair"      && <DrywallRepairForm defaults={details} onChange={handleDetailsChange} />}
+            {service === "lvp_flooring"        && <LvpFlooringForm defaults={details} onChange={handleDetailsChange} />}
             {service === "tile"                && <TileForm        defaults={details} onChange={handleDetailsChange} />}
             {service === "stain_clear"         && <StainClearForm  defaults={details} onChange={handleDetailsChange} />}
           </>

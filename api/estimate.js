@@ -6,6 +6,7 @@ const SERVICE_NAMES = {
   cabinet_refinishing: 'Cabinet Refinishing',
   drywall: 'Drywall',
   drywall_repair: 'Drywall Repair',
+  lvp_flooring: 'LVP Flooring',
   tile: 'Tile Installation',
   stain_clear: 'Stain & Clear',
 };
@@ -38,7 +39,7 @@ function formatDetails(service, d) {
     damage:          { none: 'Sin daños', moderate: 'Daño moderado', heavy: 'Daño severo' },
     textureType:     { none: 'Sin textura', orange_peel: 'Orange Peel', knockdown: 'Knockdown', hand_trowel: 'Hand Trowel', smooth_finish: 'Smooth Finish' },
     repairSize:      { small: 'Pequeño (crack / un agujero)', medium: 'Mediano (múltiples parches)', large: 'Grande (sección entera / daño por agua)' },
-    tileService:     { tile_flooring: 'Piso de Tile', shower_tile: 'Tile de Ducha', backsplash: 'Backsplash', full_shower_remodel: 'Remodelación Completa de Ducha', lvp: 'Luxury Vinyl Plank (LVP)', engineered_wood: 'Engineered Wood Flooring' },
+    tileService:     { tile_flooring: 'Piso de Tile', shower_tile: 'Tile de Ducha', backsplash: 'Backsplash', full_shower_remodel: 'Remodelación Completa de Ducha' },
     type:            { interior: 'Interior', exterior: 'Exterior' },
   };
   const lk = (key, val) => (val ? MAP[key]?.[val] ?? val : null);
@@ -86,6 +87,9 @@ function formatDetails(service, d) {
     case 'drywall_repair': return [
       row('Tamaño de la reparación', lk('repairSize', d.repairSize)),
     ];
+    case 'lvp_flooring': return [
+      row('Área de LVP',             sqft(d.squareFootage)),
+    ];
     case 'tile': return [
       row('Tipo de trabajo',        lk('tileService', d.tileService)),
       ...(d.tileService !== 'full_shower_remodel' ? [row('Área', sqft(d.squareFootage))] : []),
@@ -118,14 +122,12 @@ const _C = {
 };
 const _DW = { hang: 16, tape: 1.0, orange_peel: 0.85, knockdown: 1.25, hand_trowel: 1.75, smooth_finish: 3.0 };
 const _REP = { small: 350, medium: 950, large: 2500 };
-const _T = {
-  tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500,
-  lvp: { low: 2, high: 4 }, engineered_wood: { low: 3.5, high: 7 },
-};
+const _T = { tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500 };
+const _LVP = { low: 2, high: 4 };
 const _S = { interior: 7.0, exterior: 8.0, sill: 150, door: 650 };
 const _MIN = {
   interior_painting: 3000, exterior_painting: 3500, cabinet_refinishing: 2500,
-  drywall: 500, drywall_repair: 350, tile: 500, stain_clear: 500,
+  drywall: 500, drywall_repair: 350, lvp_flooring: 500, tile: 500, stain_clear: 500,
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -201,18 +203,18 @@ function calcRepair(d) {
   return toRange(_REP[d.repairSize] ?? 350, 'drywall_repair', 'standard', d.repairSize === 'large');
 }
 
+function calcLvp(d) {
+  const sqft = n(d.squareFootage);
+  return {
+    low: Math.round(sqft * _LVP.low),
+    typical: Math.round(sqft * ((_LVP.low + _LVP.high) / 2)),
+    premium: Math.round(sqft * _LVP.high),
+    inspectionRecommended: false,
+  };
+}
+
 function calcTile(d) {
   if (d.tileService === 'full_shower_remodel') return toRange(_T.full_shower_remodel, 'tile');
-  const rateRange = _T[d.tileService];
-  if (rateRange && typeof rateRange === 'object') {
-    const sqft = n(d.squareFootage);
-    return {
-      low: Math.round(sqft * rateRange.low),
-      typical: Math.round(sqft * ((rateRange.low + rateRange.high) / 2)),
-      premium: Math.round(sqft * rateRange.high),
-      inspectionRecommended: false,
-    };
-  }
   return toRange(n(d.squareFootage) * (_T[d.tileService] ?? 12), 'tile');
 }
 
@@ -243,7 +245,7 @@ export default async function handler(req, res) {
 
   // Basic validation
   const validCustomers = ['homeowner', 'builder', 'property_manager'];
-  const validServices = ['interior_painting', 'exterior_painting', 'cabinet_refinishing', 'drywall', 'drywall_repair', 'tile', 'stain_clear'];
+  const validServices = ['interior_painting', 'exterior_painting', 'cabinet_refinishing', 'drywall', 'drywall_repair', 'lvp_flooring', 'tile', 'stain_clear'];
   if (!validCustomers.includes(customerType)) return res.status(400).json({ success: false, error: 'Invalid client type.' });
   if (!validServices.includes(service)) return res.status(400).json({ success: false, error: 'Invalid service.' });
   if (!d || typeof d !== 'object') return res.status(400).json({ success: false, error: 'Project details are required.' });
@@ -267,6 +269,7 @@ export default async function handler(req, res) {
       case 'cabinet_refinishing': estimate = calcCabinet(customerType, d); break;
       case 'drywall':             estimate = calcDrywall(d); break;
       case 'drywall_repair':      estimate = calcRepair(d); break;
+      case 'lvp_flooring':        estimate = calcLvp(d); break;
       case 'tile':                estimate = calcTile(d); break;
       case 'stain_clear':         estimate = calcStain(d); break;
       default: throw new Error('Unknown service');

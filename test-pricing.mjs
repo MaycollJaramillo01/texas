@@ -22,14 +22,12 @@ const _C = {
 };
 const _DW  = { hang: 16, tape: 1.0, orange_peel: 0.85, knockdown: 1.25, hand_trowel: 1.75, smooth_finish: 3.0 };
 const _REP = { small: 350, medium: 950, large: 2500 };
-const _T = {
-  tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500,
-  lvp: { low: 2, high: 4 }, engineered_wood: { low: 3.5, high: 7 },
-};
+const _T = { tile_flooring: 12, shower_tile: 30, backsplash: 25, full_shower_remodel: 6500 };
+const _LVP = { low: 2, high: 4 };
 const _S   = { interior: 7.0, exterior: 8.0, sill: 150, door: 650 };
 const _MIN = {
   interior_painting: 3000, exterior_painting: 3500, cabinet_refinishing: 2500,
-  drywall: 500, drywall_repair: 350, tile: 500, stain_clear: 500,
+  drywall: 500, drywall_repair: 350, lvp_flooring: 500, tile: 500, stain_clear: 500,
 };
 
 function round100(n)  { return Math.round(Math.round(n * 100) / 100 / 100) * 100; }
@@ -102,17 +100,17 @@ function calcRepair(d) {
 
 function calcTile(d) {
   if (d.tileService === 'full_shower_remodel') return toRange(_T.full_shower_remodel, 'tile');
-  const rateRange = _T[d.tileService];
-  if (rateRange && typeof rateRange === 'object') {
-    const sqft = n(d.squareFootage);
-    return {
-      low: Math.round(sqft * rateRange.low),
-      typical: Math.round(sqft * ((rateRange.low + rateRange.high) / 2)),
-      premium: Math.round(sqft * rateRange.high),
-      inspectionRecommended: false,
-    };
-  }
   return toRange(n(d.squareFootage) * (_T[d.tileService] ?? 12), 'tile');
+}
+
+function calcLvp(d) {
+  const sqft = n(d.squareFootage);
+  return {
+    low: Math.round(sqft * _LVP.low),
+    typical: Math.round(sqft * ((_LVP.low + _LVP.high) / 2)),
+    premium: Math.round(sqft * _LVP.high),
+    inspectionRecommended: false,
+  };
 }
 
 function calcStain(d) {
@@ -397,14 +395,8 @@ test(
 
 test(
   '#22 LVP 200 sqft at $2.00–$4.00/sqft',
-  calcTile({ tileService: 'lvp', squareFootage: 200 }),
+  calcLvp({ squareFootage: 200 }),
   { low: 400, typical: 600, premium: 800, inspectionRecommended: false }
-);
-
-test(
-  '#23 Engineered wood 200 sqft at $3.50–$7.00/sqft',
-  calcTile({ tileService: 'engineered_wood', squareFootage: 200 }),
-  { low: 700, typical: 1050, premium: 1400, inspectionRecommended: false }
 );
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ export const ServiceTypeSchema = z.enum([
   'cabinet_refinishing',
   'drywall',
   'drywall_repair',
+  'lvp_flooring',
   'tile',
   'stain_clear',
 ]);
@@ -68,8 +69,12 @@ export const DrywallRepairSchema = z.object({
 });
 
 export const TileSchema = z.object({
-  tileService: z.enum(['tile_flooring', 'shower_tile', 'backsplash', 'full_shower_remodel', 'lvp', 'engineered_wood']),
+  tileService: z.enum(['tile_flooring', 'shower_tile', 'backsplash', 'full_shower_remodel']),
   squareFootage: z.number().min(0).max(20000),
+});
+
+export const LvpFlooringSchema = z.object({
+  squareFootage: z.number().positive('Square footage must be greater than 0.').max(20000),
 });
 
 export const StainClearSchema = z.object({
@@ -105,6 +110,8 @@ export function validateProjectDetails(service: string, data: unknown) {
       return DrywallSchema.parse(data);
     case 'drywall_repair':
       return DrywallRepairSchema.parse(data);
+    case 'lvp_flooring':
+      return LvpFlooringSchema.parse(data);
     case 'tile':
       return TileSchema.parse(data);
     case 'stain_clear':

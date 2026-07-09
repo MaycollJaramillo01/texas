@@ -6,6 +6,7 @@ export type ServiceType =
   | 'cabinet_refinishing'
   | 'drywall'
   | 'drywall_repair'
+  | 'lvp_flooring'
   | 'tile'
   | 'stain_clear';
 
@@ -57,7 +58,11 @@ export interface DrywallRepairDetails {
 }
 
 export interface TileDetails {
-  tileService: 'tile_flooring' | 'shower_tile' | 'backsplash' | 'full_shower_remodel' | 'lvp' | 'engineered_wood';
+  tileService: 'tile_flooring' | 'shower_tile' | 'backsplash' | 'full_shower_remodel';
+  squareFootage: number;
+}
+
+export interface LvpFlooringDetails {
   squareFootage: number;
 }
 
@@ -74,6 +79,7 @@ export type ProjectDetails =
   | CabinetRefinishingDetails
   | DrywallDetails
   | DrywallRepairDetails
+  | LvpFlooringDetails
   | TileDetails
   | StainClearDetails;
 
