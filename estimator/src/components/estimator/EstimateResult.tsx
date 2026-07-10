@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
+import { BOOKING_HOURS_LABEL } from '@/lib/booking-policy';
 import type { EstimateRange, ServiceType, WizardData } from '@/types/estimate';
 
 interface Props {
@@ -18,7 +19,7 @@ const SERVICE_LABELS: Record<ServiceType, string> = {
   cabinet_refinishing: 'Cabinet Refinishing',
   drywall: 'Drywall',
   drywall_repair: 'Drywall Repair',
-  lvp_flooring: 'LVP Flooring',
+  lvp_flooring: 'Luxury Vinyl Plank (LVP)',
   tile: 'Tile Installation',
   stain_clear: 'Stain & Clear',
 };
@@ -204,7 +205,7 @@ export default function EstimateResult({ estimate, service, lead, message, onSta
               ))}
             </div>
           )}
-          <p className="text-xs text-slate-400">All times shown in Texas time.</p>
+          <p className="text-xs text-slate-400">Available {BOOKING_HOURS_LABEL}.</p>
           {bookingError && <p className="text-sm text-red-600">{bookingError}</p>}
           <Button
             variant="primary"

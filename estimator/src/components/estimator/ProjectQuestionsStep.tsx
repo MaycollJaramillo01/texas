@@ -563,7 +563,7 @@ function LvpFlooringForm({ defaults, onChange }: { defaults: Record<string, unkn
   return (
     <div className="flex flex-col gap-5">
       <Input
-        label="LVP flooring area"
+        label="Luxury Vinyl Plank (LVP) area"
         type="number"
         min={1}
         placeholder="e.g. 600"
@@ -714,7 +714,7 @@ const SERVICE_TITLES: Record<ServiceType, string> = {
   cabinet_refinishing: 'Cabinet Refinishing Details',
   drywall: 'Drywall Project Details',
   drywall_repair: 'Drywall Repair Details',
-  lvp_flooring: 'LVP Flooring Details',
+  lvp_flooring: 'Luxury Vinyl Plank (LVP) Details',
   tile: 'Tile Installation Details',
   stain_clear: 'Stain & Clear Details',
 };

@@ -6,7 +6,7 @@ const SERVICE_NAMES = {
   cabinet_refinishing: 'Cabinet Refinishing',
   drywall: 'Drywall',
   drywall_repair: 'Drywall Repair',
-  lvp_flooring: 'LVP Flooring',
+  lvp_flooring: 'Luxury Vinyl Plank (LVP)',
   tile: 'Tile Installation',
   stain_clear: 'Stain & Clear',
 };

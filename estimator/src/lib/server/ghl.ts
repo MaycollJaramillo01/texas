@@ -1,4 +1,9 @@
 import type { CustomerType, EstimateRange, LeadInfo, ServiceType } from '@/types/estimate';
+import {
+  BOOKING_HOURS_LABEL,
+  BOOKING_TIMEZONE,
+  isAllowedVerificationSlot,
+} from '@/lib/booking-policy';
 
 const GHL_BASE = 'https://services.leadconnectorhq.com';
 const GHL_VERSION = '2021-07-28';
@@ -10,7 +15,7 @@ const SERVICE_LABELS: Record<ServiceType, string> = {
   cabinet_refinishing: 'Cabinet Refinishing',
   drywall: 'Drywall',
   drywall_repair: 'Drywall Repair',
-  lvp_flooring: 'LVP Flooring',
+  lvp_flooring: 'Luxury Vinyl Plank (LVP)',
   tile: 'Tile',
   stain_clear: 'Stain & Clear Coat',
 };
@@ -96,32 +101,6 @@ function summarizeProjectDetails(details: Record<string, unknown>): string {
     .join('\n');
 }
 
-const BOOKING_TIMEZONE = 'America/Chicago';
-const BOOKING_START_MINUTES = 10 * 60;
-const BOOKING_END_MINUTES = 16 * 60;
-const BOOKING_WEEKDAYS = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
-
-function isAllowedVerificationSlot(slotIso: string): boolean {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: BOOKING_TIMEZONE,
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(new Date(slotIso));
-  const get = (type: string) => parts.find((part) => part.type === type)?.value;
-  const weekday = get('weekday');
-  const hour = Number(get('hour'));
-  const minute = Number(get('minute'));
-  if (!weekday || !Number.isFinite(hour) || !Number.isFinite(minute)) return false;
-  const localMinutes = hour * 60 + minute;
-  return (
-    BOOKING_WEEKDAYS.has(weekday) &&
-    localMinutes >= BOOKING_START_MINUTES &&
-    localMinutes <= BOOKING_END_MINUTES
-  );
-}
-
 export interface BookVisitInput {
   name: string;
   email: string;
@@ -162,7 +141,7 @@ export async function bookVerificationVisit(input: BookVisitInput): Promise<void
   const calendarId = process.env.GHL_CALENDAR_ID;
   if (!config || !calendarId) throw new Error('GHL calendar not configured (GHL_CALENDAR_ID).');
   if (!isAllowedVerificationSlot(input.startTime)) {
-    throw new Error('Verification visits are only available Monday-Friday, 10:00 AM-4:00 PM Texas time.');
+    throw new Error(`Verification visits are only available ${BOOKING_HOURS_LABEL}.`);
   }
 
   const name = input.name.trim();

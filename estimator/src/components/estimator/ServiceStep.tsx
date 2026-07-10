@@ -14,7 +14,7 @@ const services: { value: ServiceType; label: string; description: string }[] = [
   { value: 'cabinet_refinishing', label: 'Cabinet Refinishing', description: 'Kitchen, bathroom, and custom cabinet doors.' },
   { value: 'drywall', label: 'Drywall', description: 'New installation, tape & float, and texture finishes.' },
   { value: 'drywall_repair', label: 'Drywall Repair', description: 'Patch and repair holes, cracks, or water damage.' },
-  { value: 'lvp_flooring', label: 'LVP Flooring', description: 'Luxury vinyl plank flooring installation.' },
+  { value: 'lvp_flooring', label: 'Luxury Vinyl Plank (LVP)', description: 'Durable plank flooring installation for residential interiors.' },
   { value: 'tile', label: 'Tile Installation', description: 'Floors, showers, backsplash, and full shower remodels.' },
   { value: 'stain_clear', label: 'Stain & Clear', description: 'Interior/exterior wood staining and clear coat finishes.' },
 ];

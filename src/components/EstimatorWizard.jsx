@@ -338,7 +338,7 @@ function LvpFlooringForm({ defaults, onChange }) {
 
   return (
     <>
-      <NumberInput label="LVP flooring area" value={sqft} onChange={setSqft} placeholder="e.g. 600" unit="sq ft" required />
+      <NumberInput label="Luxury Vinyl Plank (LVP) area" value={sqft} onChange={setSqft} placeholder="e.g. 600" unit="sq ft" required />
       <p className="form-hint" style={{ padding: "12px", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "var(--radius)" }}>
         Subfloor prep, transitions, demo, and material selection may affect the final proposal after the verification visit.
       </p>
@@ -418,7 +418,7 @@ const SERVICE_OPTIONS = [
   { value: "cabinet_refinishing", label: "Cabinet Refinishing", description: "Kitchen, bathroom, and custom cabinet doors." },
   { value: "drywall", label: "Drywall", description: "New installation, tape & float, and texture finishes." },
   { value: "drywall_repair", label: "Drywall Repair", description: "Patch and repair holes, cracks, or water damage." },
-  { value: "lvp_flooring", label: "LVP Flooring", description: "Luxury vinyl plank flooring installation." },
+  { value: "lvp_flooring", label: "Luxury Vinyl Plank (LVP)", description: "Durable plank flooring installation for residential interiors." },
   { value: "tile", label: "Tile Installation", description: "Floors, showers, backsplash, and full shower remodels." },
   { value: "stain_clear", label: "Stain & Clear", description: "Interior/exterior wood staining and clear coat finishes." },
 ];
@@ -429,7 +429,7 @@ const SERVICE_LABELS = {
   cabinet_refinishing: "Cabinet Refinishing",
   drywall: "Drywall",
   drywall_repair: "Drywall Repair",
-  lvp_flooring: "LVP Flooring",
+  lvp_flooring: "Luxury Vinyl Plank (LVP)",
   tile: "Tile Installation",
   stain_clear: "Stain & Clear",
 };

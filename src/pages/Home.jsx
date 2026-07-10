@@ -28,6 +28,7 @@ const MINI_SERVICES = [
   { value: "exterior_painting", label: "Exterior Painting", field: "Exterior area", unit: "sq ft", placeholder: "e.g. 2,500" },
   { value: "drywall", label: "Drywall", field: "Project area", unit: "sq ft", placeholder: "e.g. 800" },
   { value: "drywall_repair", label: "Drywall Repair", field: null },
+  { value: "lvp_flooring", label: "Luxury Vinyl Plank (LVP)", field: "Flooring area", unit: "sq ft", placeholder: "e.g. 600" },
   { value: "tile", label: "Tile & Flooring", field: "Area", unit: "sq ft", placeholder: "e.g. 120" },
   { value: "stain_clear", label: "Stain & Clear", field: "Surface area", unit: "sq ft", placeholder: "e.g. 200" },
 ];
@@ -397,6 +398,7 @@ const ESTIMATOR_SERVICES = [
   { href: "/estimate?service=cabinet_refinishing", label: "Cabinet Refinishing" },
   { href: "/estimate?service=drywall",             label: "Drywall" },
   { href: "/estimate?service=drywall_repair",      label: "Drywall Repair" },
+  { href: "/estimate?service=lvp_flooring",        label: "Luxury Vinyl Plank (LVP)" },
   { href: "/estimate?service=tile",                label: "Tile Installation" },
   { href: "/estimate?service=stain_clear",         label: "Stain & Clear" },
 ];
