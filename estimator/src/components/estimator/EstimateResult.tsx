@@ -82,7 +82,13 @@ export default function EstimateResult({ estimate, service, lead, message, onSta
       const res = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: lead.name, email: lead.email, phone: lead.phone, startTime: selectedSlot }),
+        body: JSON.stringify({
+          name: lead.name,
+          email: lead.email,
+          phone: lead.phone,
+          city: lead.city,
+          startTime: selectedSlot,
+        }),
       });
       const json = await res.json();
       if (!json.success) {

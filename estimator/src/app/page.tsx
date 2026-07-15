@@ -1,6 +1,44 @@
 import EstimatorWizard from '@/components/estimator/EstimatorWizard';
+import type { ServiceType } from '@/types/estimate';
 
-export default function HomePage() {
+const VALID_SERVICES: ServiceType[] = [
+  'interior_painting',
+  'exterior_painting',
+  'cabinet_refinishing',
+  'drywall',
+  'drywall_repair',
+  'lvp_flooring',
+  'tile',
+  'stain_clear',
+];
+
+/**
+ * The home-page hero calculator links here with ?service=&qty=. Map that single
+ * quantity onto the field its service's form actually reads, so the visitor is
+ * never asked for a number they already typed.
+ */
+function buildInitialDetails(service: ServiceType, qty: number): Record<string, unknown> | undefined {
+  if (service === 'cabinet_refinishing') return { cabinetDoors: Math.round(qty) };
+  if (service === 'drywall_repair') return undefined; // no quantity to carry
+  return { squareFootage: qty };
+}
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+
+  const rawService = typeof params.service === 'string' ? params.service : undefined;
+  const initialService = VALID_SERVICES.includes(rawService as ServiceType)
+    ? (rawService as ServiceType)
+    : undefined;
+
+  const rawQty = typeof params.qty === 'string' ? Number.parseFloat(params.qty) : Number.NaN;
+  const qty = Number.isFinite(rawQty) && rawQty > 0 && rawQty <= 25000 ? rawQty : undefined;
+  const initialDetails = initialService && qty ? buildInitialDetails(initialService, qty) : undefined;
+
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Top bar */}
@@ -39,7 +77,7 @@ export default function HomePage() {
 
       {/* Wizard */}
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <EstimatorWizard />
+        <EstimatorWizard initialService={initialService} initialDetails={initialDetails} />
       </div>
 
       {/* Footer */}

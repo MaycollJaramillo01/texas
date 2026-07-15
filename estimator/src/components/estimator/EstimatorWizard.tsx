@@ -21,12 +21,19 @@ const STEP_LABELS = [
 
 const EMPTY_LEAD = { name: '', email: '', phone: '', city: '' };
 
-export default function EstimatorWizard() {
+interface Props {
+  /** Service preselected by the home-page hero calculator, via ?service=. */
+  initialService?: ServiceType;
+  /** Project details prefilled from the hero calculator's ?qty=. */
+  initialDetails?: Record<string, unknown>;
+}
+
+export default function EstimatorWizard({ initialService, initialDetails }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [data, setData] = useState<WizardData>({
     customerType: null,
-    service: null,
-    projectDetails: {},
+    service: initialService ?? null,
+    projectDetails: initialDetails ?? {},
     lead: EMPTY_LEAD,
   });
   const [stepValid, setStepValid] = useState(false);
@@ -61,6 +68,12 @@ export default function EstimatorWizard() {
   const goNext = async () => {
     if (step === 4) {
       await submit();
+      return;
+    }
+    // The hero calculator already captured the service — jump past that step
+    // rather than asking again. Back from step 3 still reaches it.
+    if (step === 1 && initialService && data.service) {
+      setStep(3);
       return;
     }
     setStep((s) => Math.min(5, s + 1) as typeof step);
@@ -133,7 +146,11 @@ export default function EstimatorWizard() {
           <ServiceStep
             value={data.service}
             onChange={(v: ServiceType) => {
-              setData((prev) => ({ ...prev, service: v, projectDetails: {} }));
+              // Only wipe the answers when the service actually changes, so
+              // reselecting the preselected one keeps prefilled details.
+              setData((prev) =>
+                prev.service === v ? prev : { ...prev, service: v, projectDetails: {} }
+              );
             }}
           />
         )}

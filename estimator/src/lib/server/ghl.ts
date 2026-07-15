@@ -106,6 +106,7 @@ export interface BookVisitInput {
   email: string;
   phone: string;
   startTime: string; // ISO 8601 with offset, as returned by getFreeSlots
+  city?: string;
 }
 
 /** Free slots for the verification-visit calendar, keyed by YYYY-MM-DD. */
@@ -172,6 +173,13 @@ export async function bookVerificationVisit(input: BookVisitInput): Promise<void
       startTime: input.startTime,
       title: `Verification Visit — ${name}`,
       appointmentStatus: 'confirmed',
+      // GHL defaults toNotify to false on API-created appointments, which
+      // suppresses the calendar's confirmation email (and its booking links).
+      toNotify: true,
+      // Populates the location line in that confirmation; the visit happens at
+      // the customer's property, so the city is the most precise thing we hold.
+      meetingLocationType: 'address',
+      address: input.city?.trim() || 'On-site — address confirmed by phone',
     }),
   });
 
