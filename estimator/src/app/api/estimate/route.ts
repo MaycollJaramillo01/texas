@@ -54,6 +54,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<EstimateRespo
     } catch (err) {
       // The visitor still gets their estimate even if the CRM is down; the
       // [THR-LEAD] log line above is the fallback record for manual recovery.
+      // The owner's email notification is sent client-side — see lib/notify.ts.
       console.error('[THR-GHL-SYNC-ERROR]', err);
     }
 

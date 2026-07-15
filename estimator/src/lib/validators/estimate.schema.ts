@@ -55,14 +55,18 @@ export const CabinetRefinishingSchema = z
     path: ['cabinetDoors'],
   });
 
-export const DrywallSchema = z.object({
-  sheets: z.number().int().min(0).max(5000),
-  hangDrywall: z.boolean(),
-  tapeAndFloat: z.boolean(),
-  tapeSquareFootage: z.number().min(0).max(100000),
-  textureType: z.enum(['none', 'orange_peel', 'knockdown', 'hand_trowel', 'smooth_finish']),
-  textureSquareFootage: z.number().min(0).max(100000),
-});
+// Every drywall line item is priced off the sheet count, so it must be present.
+export const DrywallSchema = z
+  .object({
+    sheets: z.number().int().min(1, 'Enter the number of drywall sheets.').max(5000),
+    hangDrywall: z.boolean(),
+    tapeAndFloat: z.boolean(),
+    textureType: z.enum(['none', 'orange_peel', 'knockdown', 'hand_trowel', 'smooth_finish']),
+  })
+  .refine((d) => d.hangDrywall || d.tapeAndFloat || d.textureType !== 'none', {
+    message: 'Select at least one drywall service.',
+    path: ['hangDrywall'],
+  });
 
 export const DrywallRepairSchema = z.object({
   repairSize: z.enum(['small', 'medium', 'large']),

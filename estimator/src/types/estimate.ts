@@ -48,9 +48,7 @@ export interface DrywallDetails {
   sheets: number;
   hangDrywall: boolean;
   tapeAndFloat: boolean;
-  tapeSquareFootage: number;
   textureType: 'none' | 'orange_peel' | 'knockdown' | 'hand_trowel' | 'smooth_finish';
-  textureSquareFootage: number;
 }
 
 export interface DrywallRepairDetails {

@@ -19,6 +19,7 @@ const VALID_SERVICES: ServiceType[] = [
  */
 function buildInitialDetails(service: ServiceType, qty: number): Record<string, unknown> | undefined {
   if (service === 'cabinet_refinishing') return { cabinetDoors: Math.round(qty) };
+  if (service === 'drywall') return { sheets: Math.round(qty) }; // priced by sheets, not area
   if (service === 'drywall_repair') return undefined; // no quantity to carry
   return { squareFootage: qty };
 }

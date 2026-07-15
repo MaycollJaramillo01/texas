@@ -9,6 +9,7 @@ import ServiceStep from './ServiceStep';
 import ProjectQuestionsStep from './ProjectQuestionsStep';
 import LeadCaptureStep from './LeadCaptureStep';
 import EstimateResult from './EstimateResult';
+import { sendEstimateLeadEmail } from '@/lib/notify';
 import type { CustomerType, ServiceType, WizardData, EstimateRange, EstimateResponse } from '@/types/estimate';
 
 const STEP_LABELS = [
@@ -98,6 +99,24 @@ export default function EstimatorWizard({ initialService, initialDetails }: Prop
         setApiError(json.error ?? 'Something went wrong. Please try again.');
         return;
       }
+
+      // Alert the owner to the new quote. Must run here rather than in the API
+      // route: Web3Forms' free plan only accepts client-side calls. Never block
+      // the visitor's result on it — the CRM sync is the durable record.
+      if (data.customerType && data.service) {
+        try {
+          await sendEstimateLeadEmail({
+            lead: data.lead,
+            customerType: data.customerType,
+            service: data.service,
+            projectDetails: data.projectDetails,
+            estimate: json.estimate,
+          });
+        } catch (err) {
+          console.error('[THR-NOTIFY-ERROR]', err);
+        }
+      }
+
       setEstimate(json.estimate);
       setResultMessage(json.message);
       setStep(5);

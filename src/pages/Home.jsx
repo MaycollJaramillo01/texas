@@ -26,7 +26,7 @@ const MINI_SERVICES = [
   { value: "cabinet_refinishing", label: "Cabinet Refinishing", field: "Cabinet doors", unit: "doors", placeholder: "e.g. 24" },
   { value: "interior_painting", label: "Interior Painting", field: "Area to paint", unit: "sq ft", placeholder: "e.g. 2,000" },
   { value: "exterior_painting", label: "Exterior Painting", field: "Exterior area", unit: "sq ft", placeholder: "e.g. 2,500" },
-  { value: "drywall", label: "Drywall", field: "Project area", unit: "sq ft", placeholder: "e.g. 800" },
+  { value: "drywall", label: "Drywall", field: "Drywall sheets", unit: "sheets", placeholder: "e.g. 200" },
   { value: "drywall_repair", label: "Drywall Repair", field: null },
   { value: "lvp_flooring", label: "Luxury Vinyl Plank (LVP)", field: "Flooring area", unit: "sq ft", placeholder: "e.g. 600" },
   { value: "tile", label: "Tile & Flooring", field: "Area", unit: "sq ft", placeholder: "e.g. 120" },

@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { SQFT_PER_SHEET } from '@/lib/drywall';
 import type {
   CustomerType,
   ServiceType,
@@ -190,9 +191,13 @@ function cabinet(_c: CustomerType, d: CabinetRefinishingDetails): EstimateRange 
 }
 
 function drywall(d: DrywallDetails): EstimateRange {
+  // Taping and texture are priced off the surface of the sheets actually hung
+  // across every wall, not the property's foundation area — the foundation
+  // ignores interior walls and ceilings, which underquoted the work badly.
+  const sqft = d.sheets * SQFT_PER_SHEET;
   let base = 0;
-  if (d.hangDrywall && d.sheets > 0) base += d.sheets * _DRYWALL.hang;
-  if (d.tapeAndFloat && d.tapeSquareFootage > 0) base += d.tapeSquareFootage * _DRYWALL.tape_float;
+  if (d.hangDrywall) base += d.sheets * _DRYWALL.hang;
+  if (d.tapeAndFloat) base += sqft * _DRYWALL.tape_float;
 
   const texRates: Record<string, number> = {
     orange_peel: _DRYWALL.orange_peel,
@@ -200,9 +205,7 @@ function drywall(d: DrywallDetails): EstimateRange {
     hand_trowel: _DRYWALL.hand_trowel,
     smooth_finish: _DRYWALL.smooth_finish,
   };
-  if (d.textureType !== 'none' && d.textureSquareFootage > 0) {
-    base += d.textureSquareFootage * (texRates[d.textureType] ?? 0);
-  }
+  if (d.textureType !== 'none') base += sqft * (texRates[d.textureType] ?? 0);
 
   return toRange(base, 'drywall');
 }

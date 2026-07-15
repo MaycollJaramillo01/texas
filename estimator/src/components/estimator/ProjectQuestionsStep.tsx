@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Input from '@/components/ui/Input';
 import OptionCard from '@/components/ui/OptionCard';
+import { SQFT_PER_SHEET } from '@/lib/drywall';
 import type {
   ServiceType,
   InteriorPaintingDetails,
@@ -402,38 +403,57 @@ function CabinetForm({ defaults, onChange }: { defaults: Record<string, unknown>
 
 function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>; onChange: Props['onChange'] }) {
   const [sheets, setSheets] = useState(num(defaults.sheets ?? 0));
-  const [tapeSqft, setTapeSqft] = useState(num(defaults.tapeSquareFootage ?? defaults.squareFootage ?? 0));
-  const [textureSqft, setTextureSqft] = useState(num(defaults.textureSquareFootage ?? defaults.squareFootage ?? 0));
   const [hang, setHang] = useState<boolean>((defaults.hangDrywall as boolean) ?? false);
   const [tape, setTape] = useState<boolean>((defaults.tapeAndFloat as boolean) ?? false);
   const [texture, setTexture] = useState<DrywallDetails['textureType'] | null>(
     (defaults.textureType as DrywallDetails['textureType']) ?? 'none'
   );
 
+  const sheetCount = Math.round(parseN(sheets));
+  const coverage = sheetCount * SQFT_PER_SHEET;
+
   const emit = useCallback(() => {
+    const count = Math.round(parseN(sheets));
     const data: Record<string, unknown> = {
-      sheets: Math.round(parseN(sheets)),
+      sheets: count,
       hangDrywall: hang,
       tapeAndFloat: tape,
-      tapeSquareFootage: parseN(tapeSqft),
       textureType: texture,
-      textureSquareFootage: parseN(textureSqft),
     };
-    const isValid =
-      (hang && Math.round(parseN(sheets)) > 0) ||
-      (tape && parseN(tapeSqft) > 0) ||
-      (texture !== null && texture !== 'none' && parseN(textureSqft) > 0);
+    const isValid = count > 0 && (hang || tape || (texture !== null && texture !== 'none'));
     onChange(data, isValid);
-  }, [sheets, tapeSqft, textureSqft, hang, tape, texture, onChange]);
+  }, [sheets, hang, tape, texture, onChange]);
 
   useEffect(() => { emit(); }, [emit]);
 
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="text-sm font-semibold text-slate-900">Choose all drywall services needed</p>
-        <p className="mt-0.5 text-xs text-slate-500">Each service is measured and calculated separately.</p>
+        <p className="text-sm font-semibold text-slate-900">Measured by drywall sheets installed</p>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Taping and texture are priced from the surface of the sheets hung across every wall and ceiling — not the
+          home&apos;s foundation area.
+        </p>
       </div>
+
+      <Input
+        label="Number of drywall sheets"
+        type="number"
+        min={1}
+        placeholder="e.g. 200"
+        value={sheets}
+        onChange={(e) => setSheets(e.target.value)}
+        hint={`Counted across all walls and ceilings. Each sheet covers ${SQFT_PER_SHEET} sq ft.`}
+        required
+      />
+      {sheetCount > 0 && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+          <p className="text-xs text-slate-600">
+            {sheetCount.toLocaleString('en-US')} sheets × {SQFT_PER_SHEET} sq ft ={' '}
+            <span className="font-semibold text-slate-900">{coverage.toLocaleString('en-US')} sq ft</span> of surface
+          </p>
+        </div>
+      )}
 
       <Field label="1. New drywall installation / hanging">
         <SelectButtons
@@ -442,16 +462,6 @@ function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>
           onChange={(v) => setHang(v === 'true')}
         />
       </Field>
-      {hang && (
-        <Input
-          label="Number of drywall sheets"
-          type="number"
-          min={1}
-          placeholder="e.g. 40"
-          value={sheets}
-          onChange={(e) => setSheets(e.target.value)}
-        />
-      )}
 
       <Field label="2. Tape & float / finishing">
         <SelectButtons
@@ -460,18 +470,6 @@ function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>
           onChange={(v) => setTape(v === 'true')}
         />
       </Field>
-      {tape && (
-        <Input
-          label="Tape & float area (sq ft)"
-          type="number"
-          min={1}
-          placeholder="e.g. 800"
-          value={tapeSqft}
-          onChange={(e) => setTapeSqft(e.target.value)}
-          unit="sq ft"
-          hint="Enter only the area receiving tape & float."
-        />
-      )}
 
       <Field label="3. Texture application">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -492,18 +490,6 @@ function DrywallForm({ defaults, onChange }: { defaults: Record<string, unknown>
           ))}
         </div>
       </Field>
-      {texture !== null && texture !== 'none' && (
-        <Input
-          label="Texture area (sq ft)"
-          type="number"
-          min={1}
-          placeholder="e.g. 800"
-          value={textureSqft}
-          onChange={(e) => setTextureSqft(e.target.value)}
-          unit="sq ft"
-          hint="Enter only the area receiving the selected texture."
-        />
-      )}
     </div>
   );
 }
