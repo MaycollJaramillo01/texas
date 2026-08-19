@@ -438,13 +438,16 @@ const STEP_LABELS = ["Client Type", "Service", "Project Details", "Your Info", "
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_LEAD = { name: "", email: "", phone: "", city: "" };
-const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "5c98dc47-4b42-4c1f-a7b6-a1c93cfd7fea";
+// Web3Forms delivers to the inbox its access key was registered to
+// (Esdras@texashighrefinished.com). Key comes from the environment only.
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
 const TEST_CC_EMAIL = import.meta.env.VITE_TEST_CC_EMAIL || "";
 
 const usd = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
 async function sendEstimateLeadEmail({ customerType, service, details, lead, estimate }) {
+  if (!WEB3FORMS_ACCESS_KEY) throw new Error("VITE_WEB3FORMS_ACCESS_KEY is not set.");
   const customerLabel = CUSTOMER_OPTIONS.find((item) => item.value === customerType)?.label ?? customerType;
   const serviceLabel = SERVICE_LABELS[service] ?? service;
   const message = [

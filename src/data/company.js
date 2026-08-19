@@ -26,7 +26,7 @@ export const company = {
     phoneRaw: "+18305963323",
     sms: "sms:+18305963323",
     whatsapp: "https://wa.me/18305963323?text=Hi%20Texas%20High%20Refinished%2C%20I%27d%20like%20to%20request%20a%20free%20estimate.",
-    email: "Pvpropainting@gmail.com",
+    email: "Esdras@texashighrefinished.com",
     facebook: "https://www.facebook.com/PV-painting-105503941430961",
   },
   location: {

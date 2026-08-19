@@ -17,7 +17,9 @@ import PageHeader from "../components/PageHeader";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import SEO from "../components/SEO";
 
-const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "5c98dc47-4b42-4c1f-a7b6-a1c93cfd7fea";
+// Web3Forms delivers to the inbox its access key was registered to
+// (Esdras@texashighrefinished.com). Key comes from the environment only.
+const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
 const TEST_CC_EMAIL = import.meta.env.VITE_TEST_CC_EMAIL || "";
 // Base URL of the estimator app, which hosts the GHL CRM endpoint (/api/contact).
 const ESTIMATOR_API_URL = (import.meta.env.VITE_ESTIMATOR_API_URL || "").replace(/\/$/, "");
@@ -65,28 +67,30 @@ function ContactForm() {
           .catch(() => false)
       : Promise.resolve(false);
 
-    const emailPromise = fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        access_key: WEB3FORMS_ACCESS_KEY,
-        ...(TEST_CC_EMAIL ? { ccemail: TEST_CC_EMAIL } : {}),
-        subject: `New estimate request — ${form.service}`,
-        from_name: `${form.name} · texashighrefinished.com`,
-        replyto: form.email,
-        name: form.name,
-        email: form.email,
-        phone: form.phone || "(not provided)",
-        service: form.service,
-        message: form.message,
-        botcheck: form.botcheck,
-      }),
-    })
-      .then((r) => r.json())
-      .catch(() => ({ success: false, message: "Network error. Please check your connection and try again." }));
+    const emailPromise = WEB3FORMS_ACCESS_KEY
+      ? fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_ACCESS_KEY,
+            ...(TEST_CC_EMAIL ? { ccemail: TEST_CC_EMAIL } : {}),
+            subject: `New estimate request — ${form.service}`,
+            from_name: `${form.name} · texashighrefinished.com`,
+            replyto: form.email,
+            name: form.name,
+            email: form.email,
+            phone: form.phone || "(not provided)",
+            service: form.service,
+            message: form.message,
+            botcheck: form.botcheck,
+          }),
+        })
+          .then((r) => r.json())
+          .catch(() => ({ success: false, message: "Network error. Please check your connection and try again." }))
+      : Promise.resolve({ success: false });
 
     const [crmOk, emailResult] = await Promise.all([crmPromise, emailPromise]);
 

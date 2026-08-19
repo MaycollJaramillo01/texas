@@ -9,8 +9,8 @@ import type { CustomerType, EstimateRange, ServiceType, WizardData } from '@/typ
  * before the standalone rewrite dropped it.
  */
 const WEB3FORMS_ENDPOINT = 'https://api.web3forms.com/submit';
-const WEB3FORMS_ACCESS_KEY =
-  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || '5c98dc47-4b42-4c1f-a7b6-a1c93cfd7fea';
+// Delivery inbox is the one the key was registered to: Esdras@texashighrefinished.com.
+const WEB3FORMS_ACCESS_KEY = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
 
 const SERVICE_LABELS: Record<ServiceType, string> = {
   interior_painting: 'Interior Painting',
@@ -47,6 +47,7 @@ export interface EstimateNotification {
 
 /** Throws on failure so the caller can log it without blocking the visitor. */
 export async function sendEstimateLeadEmail(input: EstimateNotification): Promise<void> {
+  if (!WEB3FORMS_ACCESS_KEY) throw new Error('NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY is not set.');
   const { lead, customerType, service, projectDetails, estimate } = input;
   const serviceLabel = SERVICE_LABELS[service] ?? service;
   const customerLabel = CUSTOMER_LABELS[customerType] ?? customerType;
