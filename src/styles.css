@@ -2580,6 +2580,14 @@ h3 {
     letter-spacing: -0.028em;
   }
 
+  /* Safari/iOS can drop nested animated text when it uses background-clip.
+     Keep the hero emphasis solid on small screens so the full headline stays visible. */
+  .hero h1 em {
+    background: none;
+    color: var(--platinum);
+    -webkit-text-fill-color: var(--platinum);
+  }
+
   .hero-copy {
     font-size: 1rem;
     line-height: 1.6;
