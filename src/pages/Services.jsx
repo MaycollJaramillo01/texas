@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Check, Factory, Mail, Phone } from "lucide-react";
-import { assetUrl, buildServiceListJsonLd, company } from "../data/company";
+import { ESTIMATOR_URL, assetUrl, buildServiceListJsonLd, company } from "../data/company";
 import { MotionSection, Reveal, fadeUp, stagger } from "../components/motion";
 import PageHeader from "../components/PageHeader";
 import WhatsAppIcon from "../components/WhatsAppIcon";
@@ -185,7 +185,7 @@ function CTABand() {
           <WhatsAppIcon size={18} />
           WhatsApp
         </a>
-        <Link className="button primary" to="/estimate">
+        <Link className="button primary" to={ESTIMATOR_URL}>
           <Mail size={17} />
           Get Free Estimate
         </Link>

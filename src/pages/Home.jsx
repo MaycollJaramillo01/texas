@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ArrowUpRight,
   Calculator,
@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
+  ESTIMATOR_URL,
   assetUrl,
   buildBusinessJsonLd,
   buildFaqJsonLd,
@@ -34,22 +35,17 @@ const MINI_SERVICES = [
 ];
 
 function HeroEstimatorCard({ reduceMotion }) {
-  const navigate = useNavigate();
   const [service, setService] = useState("cabinet_refinishing");
   const [qty, setQty] = useState("");
   const svc = MINI_SERVICES.find((s) => s.value === service);
-  const parsed = parseFloat(qty);
-  const hasQty = !isNaN(parsed) && parsed > 0;
 
-  const submit = (e) => {
-    e.preventDefault();
-    navigate(`/estimate?service=${service}${svc.field && hasQty ? `&qty=${parsed}` : ""}`);
-  };
-
+  // A plain GET form to the estimator (it reads ?service=&qty= and ignores a
+  // blank qty) so the Google tag can decorate it for cross-domain tracking.
   return (
     <motion.form
       className="hero-calc"
-      onSubmit={submit}
+      action={ESTIMATOR_URL}
+      method="get"
       initial={reduceMotion ? false : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease, delay: 1.2 }}
@@ -62,7 +58,7 @@ function HeroEstimatorCard({ reduceMotion }) {
 
       <label className="hero-calc-field">
         <span>Service</span>
-        <select value={service} onChange={(e) => { setService(e.target.value); setQty(""); }}>
+        <select name="service" value={service} onChange={(e) => { setService(e.target.value); setQty(""); }}>
           {MINI_SERVICES.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
           ))}
@@ -74,6 +70,7 @@ function HeroEstimatorCard({ reduceMotion }) {
           <span>{svc.field}</span>
           <div className="hero-calc-input-wrap">
             <input
+              name="qty"
               type="number"
               min="0"
               inputMode="decimal"
@@ -393,14 +390,14 @@ function GalleryPreview() {
 }
 
 const ESTIMATOR_SERVICES = [
-  { href: "/estimate?service=interior_painting",   label: "Interior Painting" },
-  { href: "/estimate?service=exterior_painting",   label: "Exterior Painting" },
-  { href: "/estimate?service=cabinet_refinishing", label: "Cabinet Refinishing" },
-  { href: "/estimate?service=drywall",             label: "Drywall" },
-  { href: "/estimate?service=drywall_repair",      label: "Drywall Repair" },
-  { href: "/estimate?service=lvp_flooring",        label: "Luxury Vinyl Plank (LVP)" },
-  { href: "/estimate?service=tile",                label: "Tile Installation" },
-  { href: "/estimate?service=stain_clear",         label: "Stain & Clear" },
+  { href: `${ESTIMATOR_URL}?service=interior_painting`,   label: "Interior Painting" },
+  { href: `${ESTIMATOR_URL}?service=exterior_painting`,   label: "Exterior Painting" },
+  { href: `${ESTIMATOR_URL}?service=cabinet_refinishing`, label: "Cabinet Refinishing" },
+  { href: `${ESTIMATOR_URL}?service=drywall`,             label: "Drywall" },
+  { href: `${ESTIMATOR_URL}?service=drywall_repair`,      label: "Drywall Repair" },
+  { href: `${ESTIMATOR_URL}?service=lvp_flooring`,        label: "Luxury Vinyl Plank (LVP)" },
+  { href: `${ESTIMATOR_URL}?service=tile`,                label: "Tile Installation" },
+  { href: `${ESTIMATOR_URL}?service=stain_clear`,         label: "Stain & Clear" },
 ];
 
 function EstimatorBand() {
@@ -422,7 +419,7 @@ function EstimatorBand() {
             </p>
           </Reveal>
           <Reveal delay={0.08}>
-            <Link className="button primary" to="/estimate">
+            <Link className="button primary" to={ESTIMATOR_URL}>
               <Calculator size={16} />
               Get Free Estimate
             </Link>
@@ -464,7 +461,7 @@ function CTABand() {
           <WhatsAppIcon size={18} />
           WhatsApp Now
         </a>
-        <Link className="button primary" to="/estimate">
+        <Link className="button primary" to={ESTIMATOR_URL}>
           <Calculator size={17} />
           Get Free Estimate
         </Link>

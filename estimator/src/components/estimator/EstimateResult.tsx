@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import { BOOKING_HOURS_LABEL } from '@/lib/booking-policy';
+import { track } from '@/lib/analytics';
 import type { EstimateRange, ServiceType, WizardData } from '@/types/estimate';
 
 interface Props {
@@ -96,6 +97,7 @@ export default function EstimateResult({ estimate, service, lead, message, onSta
         setBooking('choosing');
         return;
       }
+      track('book_visit', { service });
       setBooking('booked');
     } catch {
       setBookingError('Network error. Please try again.');

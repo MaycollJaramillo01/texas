@@ -6,6 +6,30 @@
     <meta name="theme-color" content="#f4f0ea" />
     <meta name="color-scheme" content="light" />
 
+    <!-- Google tag (GA4, G-WQJZLPX7QZ). Also loaded by the estimator app (estimator/src/app/layout.tsx) — keep both in sync. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WQJZLPX7QZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag("js", new Date());
+      // The estimator lives on its own domain: carry the session (and the Google Ads click)
+      // across, and never count our own domains as referral traffic.
+      gtag("set", "linker", { domains: ["texashighrefinished.com", "thr-estimator.vercel.app"], decorate_forms: true });
+      gtag("config", "G-WQJZLPX7QZ", {
+        ignore_referrer: /(^|\.)texashighrefinished\.com$|^thr-estimator\.vercel\.app$/.test(document.referrer && new URL(document.referrer).hostname),
+      });
+      // Contact taps anywhere on the site; imported into Google Ads as conversions.
+      document.addEventListener("click", function (e) {
+        var a = e.target.closest && e.target.closest("a[href]");
+        var h = a ? a.href : "";
+        var name = /^tel:/.test(h) ? "click_to_call"
+          : /^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(h) ? "whatsapp_click"
+          : /^sms:/.test(h) ? "sms_click"
+          : /^mailto:/.test(h) ? "email_click" : "";
+        if (name) gtag("event", name);
+      }, true);
+    </script>
+
     <!-- Primary Meta Tags -->
     <title>Texas High Refinished | Cabinet Refinishing Marble Falls TX</title>
     <meta name="title" content="Texas High Refinished | Cabinet Refinishing Marble Falls TX" />

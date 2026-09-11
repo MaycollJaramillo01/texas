@@ -411,7 +411,9 @@ export const navItems = [
   { label: "Gallery", href: "/gallery" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Estimate", href: "/estimate" },
+  // Straight to the estimator (not the /estimate redirect) so the Google tag can
+  // decorate the link and keep the visit's session across domains.
+  { label: "Estimate", href: ESTIMATOR_URL },
 ];
 
 export const seoDefaults = {

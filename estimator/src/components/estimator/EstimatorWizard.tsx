@@ -10,6 +10,7 @@ import ProjectQuestionsStep from './ProjectQuestionsStep';
 import LeadCaptureStep from './LeadCaptureStep';
 import EstimateResult from './EstimateResult';
 import { sendEstimateLeadEmail } from '@/lib/notify';
+import { track } from '@/lib/analytics';
 import type { CustomerType, ServiceType, WizardData, EstimateRange, EstimateResponse } from '@/types/estimate';
 
 const STEP_LABELS = [
@@ -99,6 +100,7 @@ export default function EstimatorWizard({ initialService, initialDetails }: Prop
         setApiError(json.error ?? 'Something went wrong. Please try again.');
         return;
       }
+      track('request_estimate', { service: data.service, customer_type: data.customerType });
 
       // Alert the owner to the new quote. Must run here rather than in the API
       // route: Web3Forms' free plan only accepts client-side calls. Never block

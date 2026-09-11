@@ -95,6 +95,7 @@ function ContactForm() {
     const [crmOk, emailResult] = await Promise.all([crmPromise, emailPromise]);
 
     if (crmOk || emailResult.success) {
+      window.gtag?.("event", "contact_form_submit", { service: form.service });
       setStatus("success");
       setForm({
         name: "",
@@ -117,6 +118,7 @@ function ContactForm() {
         `Service: ${form.service}\n` +
         `Details: ${form.message || "(no details)"}`,
     );
+    window.gtag?.("event", "whatsapp_click");
     window.open(`https://wa.me/18305963323?text=${text}`, "_blank", "noreferrer");
   }
 
