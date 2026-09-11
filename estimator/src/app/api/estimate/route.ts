@@ -21,7 +21,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<EstimateRespo
       );
     }
 
-    const { customerType, service, projectDetails, lead } = parsed.data;
+    const { customerType, service, projectDetails, lead, attribution } = parsed.data;
 
     let validatedDetails: Record<string, unknown>;
     try {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<EstimateRespo
     console.info('[THR-LEAD]', JSON.stringify({ lead, service, customerType, timestamp: new Date().toISOString() }));
 
     try {
-      await syncLeadToGHL({ lead, customerType, service, projectDetails: validatedDetails, estimate });
+      await syncLeadToGHL({ lead, customerType, service, projectDetails: validatedDetails, estimate, attribution });
     } catch (err) {
       // The visitor still gets their estimate even if the CRM is down; the
       // [THR-LEAD] log line above is the fallback record for manual recovery.

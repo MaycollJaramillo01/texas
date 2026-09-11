@@ -11,6 +11,7 @@ import LeadCaptureStep from './LeadCaptureStep';
 import EstimateResult from './EstimateResult';
 import { sendEstimateLeadEmail } from '@/lib/notify';
 import { track } from '@/lib/analytics';
+import type { Attribution } from '@/lib/attribution';
 import type { CustomerType, ServiceType, WizardData, EstimateRange, EstimateResponse } from '@/types/estimate';
 
 const STEP_LABELS = [
@@ -28,9 +29,11 @@ interface Props {
   initialService?: ServiceType;
   /** Project details prefilled from the hero calculator's ?qty=. */
   initialDetails?: Record<string, unknown>;
+  /** Ad click handed over by the main site, for the CRM's lead source. */
+  attribution?: Attribution;
 }
 
-export default function EstimatorWizard({ initialService, initialDetails }: Props) {
+export default function EstimatorWizard({ initialService, initialDetails, attribution }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [data, setData] = useState<WizardData>({
     customerType: null,
@@ -93,6 +96,7 @@ export default function EstimatorWizard({ initialService, initialDetails }: Prop
           service: data.service,
           projectDetails: data.projectDetails,
           lead: data.lead,
+          attribution,
         }),
       });
       const json: EstimateResponse = await res.json();

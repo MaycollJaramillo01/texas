@@ -4,6 +4,7 @@ import {
   BOOKING_TIMEZONE,
   isAllowedVerificationSlot,
 } from '@/lib/booking-policy';
+import { attributionTags, sourceLabel, type Attribution } from '@/lib/attribution';
 
 const GHL_BASE = 'https://services.leadconnectorhq.com';
 const GHL_VERSION = '2021-07-28';
@@ -32,6 +33,7 @@ export interface SyncLeadInput {
   service: ServiceType;
   projectDetails: Record<string, unknown>;
   estimate: EstimateRange;
+  attribution?: Attribution;
 }
 
 interface GHLConfig {
@@ -93,6 +95,16 @@ async function addTags(apiKey: string, contactId: string, tags: string[]): Promi
     method: 'POST',
     body: JSON.stringify({ tags }),
   });
+}
+
+/**
+ * Ad-click fields, only written if the location actually defines them —
+ * `getCustomFieldIds` drops unknown keys. Create a "gclid" custom field in
+ * GoHighLevel to enable offline conversion uploads back to Google Ads.
+ */
+function adFieldValues(attribution?: Attribution): Array<[string, string]> {
+  const gclid = attribution?.gclid ?? attribution?.gbraid ?? attribution?.wbraid;
+  return gclid ? [['contact.gclid', gclid]] : [];
 }
 
 function summarizeProjectDetails(details: Record<string, unknown>): string {
@@ -211,6 +223,7 @@ export interface ContactFormInput {
   phone?: string;
   service: string;
   message: string;
+  attribution?: Attribution;
 }
 
 /**
@@ -239,6 +252,7 @@ export async function syncContactFormLead(input: ContactFormInput): Promise<void
   const fieldValues: Array<[string, string]> = [
     ['contact.message', input.message],
     ['contact.service_requested', input.service],
+    ...adFieldValues(input.attribution),
   ];
   const customFields = fieldValues
     .filter(([key]) => fieldIds[key])
@@ -253,7 +267,7 @@ export async function syncContactFormLead(input: ContactFormInput): Promise<void
       name,
       email: input.email,
       ...(input.phone ? { phone: input.phone } : {}),
-      source: 'Website Contact Form',
+      source: sourceLabel('Website Contact Form', input.attribution),
       customFields,
     }),
   });
@@ -261,7 +275,7 @@ export async function syncContactFormLead(input: ContactFormInput): Promise<void
   const contactId = upsert.contact?.id;
   if (!contactId) throw new Error('GHL upsert returned no contact id.');
 
-  await addTags(config.apiKey, contactId, ['contact-form']);
+  await addTags(config.apiKey, contactId, ['contact-form', ...attributionTags(input.attribution)]);
 
   if (config.pipelineId && config.stageId) {
     await ghlFetch(config.apiKey, '/opportunities/', {
@@ -293,7 +307,7 @@ export async function syncLeadToGHL(input: SyncLeadInput): Promise<void> {
     return;
   }
 
-  const { lead, customerType, service, projectDetails, estimate } = input;
+  const { lead, customerType, service, projectDetails, estimate, attribution } = input;
   const serviceLabel = SERVICE_LABELS[service];
   const [firstName, ...rest] = lead.name.trim().split(/\s+/);
   const lastName = rest.join(' ');
@@ -312,6 +326,7 @@ export async function syncLeadToGHL(input: SyncLeadInput): Promise<void> {
     ['contact.estimate_typical', String(estimate.typical)],
     ['contact.estimate_premium', String(estimate.premium)],
     ['contact.project_details', summarizeProjectDetails(projectDetails)],
+    ...adFieldValues(attribution),
   ];
   const customFields = fieldValues
     .filter(([key]) => fieldIds[key])
@@ -327,7 +342,7 @@ export async function syncLeadToGHL(input: SyncLeadInput): Promise<void> {
       email: lead.email,
       phone: lead.phone,
       city: lead.city,
-      source: 'Website Estimator',
+      source: sourceLabel('Website Estimator', attribution),
       customFields,
     }),
   });
@@ -335,7 +350,11 @@ export async function syncLeadToGHL(input: SyncLeadInput): Promise<void> {
   const contactId = upsert.contact?.id;
   if (!contactId) throw new Error('GHL upsert returned no contact id.');
 
-  await addTags(config.apiKey, contactId, ['estimator-lead', service.replace(/_/g, '-')]);
+  await addTags(config.apiKey, contactId, [
+    'estimator-lead',
+    service.replace(/_/g, '-'),
+    ...attributionTags(attribution),
+  ]);
 
   if (config.pipelineId && config.stageId) {
     await ghlFetch(config.apiKey, '/opportunities/', {

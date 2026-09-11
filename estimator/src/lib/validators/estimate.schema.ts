@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AttributionSchema } from '../attribution.ts';
 
 export const CustomerTypeSchema = z.enum(['homeowner', 'builder', 'property_manager']);
 export const ServiceTypeSchema = z.enum([
@@ -100,6 +101,7 @@ export const EstimateRequestSchema = z.object({
   service: ServiceTypeSchema,
   projectDetails: z.record(z.unknown()),
   lead: LeadSchema,
+  attribution: AttributionSchema,
 });
 
 export function validateProjectDetails(service: string, data: unknown) {

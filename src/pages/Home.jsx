@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import {
   ESTIMATOR_URL,
+  adParams,
+  estimatorUrl,
   assetUrl,
   buildBusinessJsonLd,
   buildFaqJsonLd,
@@ -41,6 +43,8 @@ function HeroEstimatorCard({ reduceMotion }) {
 
   // A plain GET form to the estimator (it reads ?service=&qty= and ignores a
   // blank qty) so the Google tag can decorate it for cross-domain tracking.
+  // A GET submit replaces the action's query string, so the ad click has to
+  // travel as fields rather than on the URL.
   return (
     <motion.form
       className="hero-calc"
@@ -50,6 +54,10 @@ function HeroEstimatorCard({ reduceMotion }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease, delay: 1.2 }}
     >
+      {Object.entries(adParams).map(([key, value]) => (
+        <input key={key} type="hidden" name={key} value={value} />
+      ))}
+
       <p className="hero-calc-eyebrow">
         <Calculator aria-hidden="true" size={14} />
         Instant Estimate
@@ -390,14 +398,14 @@ function GalleryPreview() {
 }
 
 const ESTIMATOR_SERVICES = [
-  { href: `${ESTIMATOR_URL}?service=interior_painting`,   label: "Interior Painting" },
-  { href: `${ESTIMATOR_URL}?service=exterior_painting`,   label: "Exterior Painting" },
-  { href: `${ESTIMATOR_URL}?service=cabinet_refinishing`, label: "Cabinet Refinishing" },
-  { href: `${ESTIMATOR_URL}?service=drywall`,             label: "Drywall" },
-  { href: `${ESTIMATOR_URL}?service=drywall_repair`,      label: "Drywall Repair" },
-  { href: `${ESTIMATOR_URL}?service=lvp_flooring`,        label: "Luxury Vinyl Plank (LVP)" },
-  { href: `${ESTIMATOR_URL}?service=tile`,                label: "Tile Installation" },
-  { href: `${ESTIMATOR_URL}?service=stain_clear`,         label: "Stain & Clear" },
+  { href: estimatorUrl({ service: "interior_painting" }),   label: "Interior Painting" },
+  { href: estimatorUrl({ service: "exterior_painting" }),   label: "Exterior Painting" },
+  { href: estimatorUrl({ service: "cabinet_refinishing" }), label: "Cabinet Refinishing" },
+  { href: estimatorUrl({ service: "drywall" }),             label: "Drywall" },
+  { href: estimatorUrl({ service: "drywall_repair" }),      label: "Drywall Repair" },
+  { href: estimatorUrl({ service: "lvp_flooring" }),        label: "Luxury Vinyl Plank (LVP)" },
+  { href: estimatorUrl({ service: "tile" }),                label: "Tile Installation" },
+  { href: estimatorUrl({ service: "stain_clear" }),         label: "Stain & Clear" },
 ];
 
 function EstimatorBand() {
@@ -419,7 +427,7 @@ function EstimatorBand() {
             </p>
           </Reveal>
           <Reveal delay={0.08}>
-            <Link className="button primary" to={ESTIMATOR_URL}>
+            <Link className="button primary" to={estimatorUrl()}>
               <Calculator size={16} />
               Get Free Estimate
             </Link>
@@ -461,7 +469,7 @@ function CTABand() {
           <WhatsAppIcon size={18} />
           WhatsApp Now
         </a>
-        <Link className="button primary" to={ESTIMATOR_URL}>
+        <Link className="button primary" to={estimatorUrl()}>
           <Calculator size={17} />
           Get Free Estimate
         </Link>

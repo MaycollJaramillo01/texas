@@ -2,6 +2,53 @@ export const SITE_URL = "https://texashighrefinished.com";
 // Standalone estimator app (Next.js) — hosts the GHL-connected wizard and booking.
 export const ESTIMATOR_URL = import.meta.env.VITE_ESTIMATOR_API_URL || "https://thr-estimator.vercel.app";
 
+const AD_PARAM_KEYS = [
+  "gclid", // Google Ads click; gbraid/wbraid replace it on iOS app + web-to-app
+  "gbraid",
+  "wbraid",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+];
+const AD_STORAGE_KEY = "thr_ad_params";
+
+// The lead is created on the estimator's own domain, so by then the ad click
+// that paid for the visit is long gone from the URL. Remember it for the visit
+// and hand it across on every estimator link — that is what lets GoHighLevel
+// say which leads came from Google Ads.
+function readAdParams() {
+  if (typeof window === "undefined") return {};
+  const query = new URLSearchParams(window.location.search);
+  const landed = {};
+  for (const key of AD_PARAM_KEYS) {
+    const value = query.get(key);
+    if (value) landed[key] = value;
+  }
+  try {
+    if (Object.keys(landed).length > 0) {
+      sessionStorage.setItem(AD_STORAGE_KEY, JSON.stringify(landed));
+      return landed;
+    }
+    return JSON.parse(sessionStorage.getItem(AD_STORAGE_KEY) || "{}");
+  } catch {
+    return landed; // Storage blocked (private mode): the landing page still knows.
+  }
+}
+
+/** This visit's ad click, captured once from the landing URL. */
+export const adParams = readAdParams();
+
+/** Estimator link carrying the visit's ad click onto the estimator's domain. */
+export function estimatorUrl(extraParams) {
+  const url = new URL(ESTIMATOR_URL);
+  for (const [key, value] of Object.entries({ ...extraParams, ...adParams })) {
+    url.searchParams.set(key, value);
+  }
+  return url.toString();
+}
+
 export function assetUrl(path) {
   return encodeURI(`${SITE_URL}/${path}`);
 }
@@ -413,7 +460,7 @@ export const navItems = [
   { label: "Contact", href: "/contact" },
   // Straight to the estimator (not the /estimate redirect) so the Google tag can
   // decorate the link and keep the visit's session across domains.
-  { label: "Estimate", href: ESTIMATOR_URL },
+  { label: "Estimate", href: estimatorUrl() },
 ];
 
 export const seoDefaults = {

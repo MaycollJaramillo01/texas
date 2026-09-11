@@ -11,7 +11,7 @@ import {
   Phone,
   Send,
 } from "lucide-react";
-import { SITE_URL, assetUrl, company } from "../data/company";
+import { SITE_URL, adParams, assetUrl, company } from "../data/company";
 import { MotionSection, Reveal, fadeUp, stagger } from "../components/motion";
 import PageHeader from "../components/PageHeader";
 import WhatsAppIcon from "../components/WhatsAppIcon";
@@ -60,6 +60,8 @@ function ContactForm() {
             service: form.service,
             message: form.message,
             botcheck: form.botcheck,
+            // Names the Google Ads click that paid for this lead, in the CRM.
+            attribution: adParams,
           }),
         })
           .then((r) => r.json())

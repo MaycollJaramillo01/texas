@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ESTIMATOR_URL } from "../data/company";
+import { ESTIMATOR_URL, adParams } from "../data/company";
 
 // The estimator now lives in its own app (GHL-connected wizard + visit
 // booking). This page keeps every existing /estimate link working.
@@ -10,9 +10,12 @@ export default function EstimateRedirectPage() {
   const [target, setTarget] = useState(ESTIMATOR_URL);
 
   useEffect(() => {
-    const url = ESTIMATOR_URL + window.location.search;
-    setTarget(url);
-    window.location.replace(url);
+    // Whatever the link carried (?service=&qty=) plus the visit's ad click, so
+    // the lead the estimator creates keeps its Google Ads attribution.
+    const url = new URL(ESTIMATOR_URL + window.location.search);
+    for (const [key, value] of Object.entries(adParams)) url.searchParams.set(key, value);
+    setTarget(url.toString());
+    window.location.replace(url.toString());
   }, []);
 
   return (

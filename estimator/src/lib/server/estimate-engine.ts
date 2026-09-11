@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { SQFT_PER_SHEET } from '@/lib/drywall';
+import { SQFT_PER_SHEET } from '../drywall.ts';
 import type {
   CustomerType,
   ServiceType,

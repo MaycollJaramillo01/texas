@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { syncContactFormLead } from '@/lib/server/ghl';
+import { AttributionSchema } from '@/lib/attribution';
 
 const ContactSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -9,6 +10,7 @@ const ContactSchema = z.object({
   service: z.string().trim().max(120).optional().default(''),
   message: z.string().trim().min(2).max(5000),
   botcheck: z.string().optional().default(''),
+  attribution: AttributionSchema,
 });
 
 const DEFAULT_ALLOWED_ORIGINS = [

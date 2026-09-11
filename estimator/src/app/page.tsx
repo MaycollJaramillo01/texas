@@ -1,4 +1,5 @@
 import EstimatorWizard from '@/components/estimator/EstimatorWizard';
+import { attributionFrom } from '@/lib/attribution';
 import type { ServiceType } from '@/types/estimate';
 
 const VALID_SERVICES: ServiceType[] = [
@@ -78,7 +79,11 @@ export default async function HomePage({
 
       {/* Wizard */}
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <EstimatorWizard initialService={initialService} initialDetails={initialDetails} />
+        <EstimatorWizard
+          initialService={initialService}
+          initialDetails={initialDetails}
+          attribution={attributionFrom(params)}
+        />
       </div>
 
       {/* Footer */}
